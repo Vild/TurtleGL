@@ -3,22 +3,23 @@
 #include <cstdio>
 #include <string>
 #include <GL/glew.h>
-#include "scopeexit.h"
+#include "scopeexit.hpp"
+#include <exception>
 
 enum class ShaderType {
-	vertex = GL_SHADER_VERTEX,
-	fragment = GL_SHADER_FRAGMENT
+	vertex = GL_VERTEX_SHADER,
+	fragment = GL_FRAGMENT_SHADER
 };
 
-class ShaderException : Exception {};
-class ShaderCreateException : ShaderException {};
+class ShaderException : public std::exception {};
+class ShaderCreateException : public ShaderException {};
 	
 class Shader {
 public:
 
-	void attach(const char * file, ShaderType type);
+	bool attach(const char * file, ShaderType type);
 private:
 	GLuint _vert = 0;
 	GLuint _frag = 0;
-	Gluint _program = 0;
-}
+	GLuint _program = 0;
+};

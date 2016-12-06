@@ -27,7 +27,7 @@ int Engine::run() {
 			}
 		}
 			
-		glClearColor(1.0, 0.0, 0.13, 0.13);
+		glClearColor(0.0, 0.13, 0.13, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		SDL_GL_SwapWindow(_window);
 	}
