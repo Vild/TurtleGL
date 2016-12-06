@@ -1,0 +1,9 @@
+#+TITLE: TurtleGL
+#+AUTHOR: Dan Printzell
+#+EMAIL: me@vild.io
+
+* Introduction
+TurtleGL is a 3D engine written in C++, using OpenGL, for a school project.
+
+* License
+Mozilla Public License, version 2.0 - See LICENSE or [[https://www.mozilla.org/en-US/MPL/2.0/][here]].

@@ -1,0 +1,7 @@
+*~
+/turtlegl
+*.ninja
+.ninja*
+compile_commands.json
+.reggae
+objs/
