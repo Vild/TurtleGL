@@ -3,6 +3,8 @@
 Engine::Engine() {
 	_initSDL();
 	_initGL();
+	_initShaders();
+	_initMeshes();
 }
 
 Engine::~Engine() {
@@ -26,9 +28,13 @@ int Engine::run() {
 				break; 
 			}
 		}
-			
-		glClearColor(0.0, 0.13, 0.13, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT);
+
+		
+		glClearColor(0.0, 0.13, 0.13*2, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		_mesh->render(glm::mat4(1.0));
+		
 		SDL_GL_SwapWindow(_window);
 	}
 	return 0;
@@ -58,4 +64,50 @@ void Engine::_initGL() {
 		throw "Failed to init glew";
 
 	SDL_GL_SetSwapInterval(1);
+	glEnable(GL_DEPTH_TEST);
+}
+
+void Engine::_initShaders() {
+	{
+		_baseProgram = std::make_shared<ShaderProgram>();
+		_baseProgram
+			->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
+			 .attach(std::make_shared<ShaderUnit>("assets/shaders/base.frag", ShaderType::fragment))
+	 		 .finalize();
+		//_baseProgram->addUniform("mvp");
+	}
+}
+
+void Engine::_initMeshes() {
+	{
+		std::vector<Vertex> vertices {
+			Vertex {
+				glm::vec4{-0.5f, 0.5f, 0.0f, 0.0f},
+				glm::vec4{0.0f, 0.0f, 0.0f, 0.0f},
+				glm::vec4{1.0f, 0.0f, 0.0f, 0.0f}
+			}, // Top-left
+			Vertex {
+				glm::vec4{0.5f, 0.5f, 0.0f, 0.0f},
+				glm::vec4{0.0f, 0.0f, 0.0f, 0.0f},
+				glm::vec4{0.0f, 1.0f, 0.0f, 0.0f}
+			}, // Top-right
+			Vertex {
+				glm::vec4{0.5f, -0.5f, 0.0f, 0.0f},
+				glm::vec4{0.0f, 0.0f, 0.0f, 0.0f},
+				glm::vec4{0.0f, 0.0f, 1.0f, 0.0f}
+			}, // Bottom-right
+			Vertex {
+				glm::vec4{-0.5f, -0.5f, 0.0f, 0.0f},
+				glm::vec4{0.0f, 0.0f, 0.0f, 0.0f},
+				glm::vec4{1.0f, 1.0f, 1.0f, 0.0f}
+			} // Bottom-left
+		};
+
+		std::vector<GLuint> indicies {
+			0, 1, 2,
+			2, 3, 0
+		};
+
+		_mesh = std::make_shared<Mesh>(_baseProgram, vertices, indicies);
+	}
 }

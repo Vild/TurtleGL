@@ -1,7 +1,10 @@
-#version 400
-in vec3 color;
-out vec4 fragment_color;
+#version 330
 
-void main () {
-	fragment_color = vec4 (color, 1.0);
+in vec3 normal;
+in vec3 color;
+
+out vec4 outColor;
+
+void main() {
+	outColor = vec4(color, 1.0);
 }

@@ -18,7 +18,7 @@ Target[] MakeObjects(string[] files, string[] headers) {
 	return objs;
 }
 
-enum objs = MakeObjects(["main", "engine", "scopeexit", "shader"], ["engine", "scopeexit", "shader"]);
+enum objs = MakeObjects(["main", "engine", "scopeexit", "shader", "mesh"], ["engine", "scopeexit", "shader", "mesh"]);
 
 enum raycast = Target("turtlegl", CompileCommand.Link, objs);
 
