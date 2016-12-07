@@ -1,5 +1,7 @@
 #include "engine.hpp"
 
+#include <glm/gtx/transform.hpp>
+
 Engine::Engine() {
 	_initSDL();
 	_initGL();
@@ -15,6 +17,7 @@ Engine::~Engine() {
 
 int Engine::run() {
 	_quit = false;
+	int fps;
 	while (!_quit) {
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
@@ -33,8 +36,13 @@ int Engine::run() {
 		glClearColor(0.0, 0.13, 0.13*2, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		_mesh->render(glm::mat4(1.0));
+		glm::mat4 mvp(1.0);
+
+		mvp = mvp * glm::rotate(fps/100.0f, glm::vec3(0.5f, 0.1f, 0.0f));
 		
+		_mesh->render(mvp);
+
+		fps++;
 		SDL_GL_SwapWindow(_window);
 	}
 	return 0;
@@ -74,7 +82,7 @@ void Engine::_initShaders() {
 			->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
 			 .attach(std::make_shared<ShaderUnit>("assets/shaders/base.frag", ShaderType::fragment))
 	 		 .finalize();
-		//_baseProgram->addUniform("mvp");
+		_baseProgram->addUniform("mvp");
 	}
 }
 

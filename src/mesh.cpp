@@ -44,6 +44,6 @@ void Mesh::render(const glm::mat4 & mvp) {
 	_program->bind();
 	glBindVertexArray(_vao);
 	
-	//	_program->setUniform("mvp", mvp);
+	_program->setUniform("mvp", mvp);
 	glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, NULL);
 }
