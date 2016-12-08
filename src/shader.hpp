@@ -14,7 +14,8 @@
 
 enum class ShaderType {
 	vertex = GL_VERTEX_SHADER,
-	fragment = GL_FRAGMENT_SHADER
+	fragment = GL_FRAGMENT_SHADER,
+	geometry = GL_GEOMETRY_SHADER
 };
 
 class ShaderException : public std::exception {
@@ -71,7 +72,7 @@ public:
 
 	ShaderProgram & setUniform(const std::string & name, const glm::vec3 & value);
 	ShaderProgram & setUniform(const std::string & name, const glm::mat4 & value);
-
+	ShaderProgram & setUniform(const std::string & name, int value);
 
 private:
 	GLuint _program = GL_FALSE;

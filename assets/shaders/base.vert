@@ -1,16 +1,18 @@
 #version 330
 
 layout(location = 0) in vec3 vertPos;
-layout(location = 1) in vec3 vertNormal;
+//layout(location = 1) in vec3 vertNormal;
 layout(location = 2) in vec3 vertColor;
+layout(location = 3) in vec2 vertUV;
 
-out vec3 normal;
-out vec3 color;
+//out vec3 vNormal;
+out vec3 vColor;
+out vec2 vUV;
 
-uniform mat4 mvp;
 
 void main() {
-	normal = vertNormal;
-	color = vertColor;
-	gl_Position = mvp * vec4(vertPos, 1.0);
+	//vNormal = vertNormal;
+	vColor = vertColor;
+	vUV = vertUV;
+	gl_Position = vec4(vertPos, 1.0);
 }

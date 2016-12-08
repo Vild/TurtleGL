@@ -33,7 +33,8 @@ ShaderUnit::ShaderUnit(const std::string & file, ShaderType type) {
 		const char * strtype;
 		switch(type) {
 		case ShaderType::vertex: strtype = "vertex"; break;
-		case ShaderType::fragment: strtype = "geometry"; break;
+		case ShaderType::fragment: strtype = "fragment"; break;
+		case ShaderType::geometry: strtype = "geometry"; break;
 		default: strtype = "(unknown)"; break;
 		}
 
@@ -111,5 +112,10 @@ ShaderProgram & ShaderProgram::setUniform(const std::string & name, const glm::v
 
 ShaderProgram & ShaderProgram::setUniform(const std::string & name, const glm::mat4 & value) {
 	glUniformMatrix4fv(_uniform[name], 1, GL_FALSE, glm::value_ptr(value));
+	return *this;
+}
+
+ShaderProgram & ShaderProgram::setUniform(const std::string & name, int value) {
+	glUniform1i(_uniform[name], value);
 	return *this;
 }

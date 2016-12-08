@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <exception>
 #include <memory>
+#include <cmath>
 
 #include "scopeexit.hpp"
 #include "shader.hpp"
@@ -17,6 +18,20 @@ public:
 
 	int run();	
 private:
+	uint32_t _width = 1280;
+	uint32_t _height = 720;
+
+	float _speed = 1.0f;
+	float _fov = 45.0f;
+	
+	float _yaw = M_PI; // -Z
+	float _pitch = 0.0f;
+	
+	glm::vec3 _position = glm::vec3(0, 0, 2);
+	
+	glm::mat4 _projection;
+	glm::mat4 _view;
+	
 	bool _quit;
 	SDL_Window * _window;
 	SDL_GLContext _context;
@@ -28,5 +43,7 @@ private:
 	void _initGL();
 	void _initShaders();
 	void _initMeshes();
+
+	void _updateMatrices(float delta, bool updateCamera);
 };
 
