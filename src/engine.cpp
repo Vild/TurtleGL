@@ -71,6 +71,12 @@ int Engine::run() {
 					SDL_ShowCursor(true);
 				}
 				break;
+			case SDL_WINDOWEVENT:
+				if (event.window.event == SDL_WINDOWEVENT_RESIZED || event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+					_width = event.window.data1;
+					_height = event.window.data2;
+				}
+				break;
 			default:
 				break;
 			}
@@ -102,7 +108,7 @@ void Engine::_initSDL() {
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 		throw "SDL could not be inited";
 	
-	_window = SDL_CreateWindow("Lab2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, _width, _height, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+	_window = SDL_CreateWindow("Lab2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, _width, _height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 	if (!_window)
 		throw "Failed to create window";
 }
@@ -123,8 +129,9 @@ void Engine::_initGL() {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	
 	glEnable(GL_TEXTURE_2D);
+
+	glViewport(0, 0, _width, _height);
 
 	if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG)
 		throw "Failed to load SDL_Image";
@@ -220,4 +227,5 @@ void Engine::_updateMatrices(float delta, bool updateCamera) {
 	
 	_projection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 20.0f);
 	_view = glm::lookAt(_position, _position + forward, up);
+	glViewport(0, 0, _width, _height);
 }
