@@ -24,10 +24,10 @@ private:
 	float _speed = 2.5f;
 	float _fov = 45.0f;
 	
-	float _yaw = M_PI; // -Z
+	float _yaw = 0;// +Z (at 0, 0, 0)
 	float _pitch = 0.0f;
 	
-	glm::vec3 _position = glm::vec3(0, 0, 2);
+	glm::vec3 _position = glm::vec3(0, 0, -2);
 	
 	glm::mat4 _projection;
 	glm::mat4 _view;

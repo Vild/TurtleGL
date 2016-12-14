@@ -82,13 +82,13 @@ Mesh::~Mesh() {
 	glDeleteVertexArrays(1, &_vao);
 }
 
-void Mesh::render(const glm::mat4 & mvp, const glm::mat4 & mv) {
+void Mesh::render(const glm::mat4 & mvp, const glm::mat4 & m) {
 	_program->bind();
 	glBindVertexArray(_vao);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, _texture);
 	
-	_program->setUniform("mvp", mvp).setUniform("mv", mv).setUniform("tex", 0).setUniform("diffusePos", glm::vec3(0, 0, -1));
+	_program->setUniform("mvp", mvp).setUniform("m", m).setUniform("tex", 0).setUniform("diffusePos", glm::vec3(0, 0, -2));
 	glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, NULL);
 }

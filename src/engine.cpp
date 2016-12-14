@@ -91,11 +91,10 @@ int Engine::run() {
 		glClearColor(0.0, 0.0, 0.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		_mesh->getTranslation() *= glm::rotate(delta, glm::vec3(0, 3, 0));
-		glm::mat4 mv = _view * _mesh->getTranslation();
-		glm::mat4 p = _projection;
+		_mesh->getTranslation() *= glm::rotate(delta, glm::vec3(0, 1.5, 0));
+		glm::mat4 mvp = _projection * _view * _mesh->getTranslation();
 		
-		_mesh->render(p * mv, mv);
+		_mesh->render(mvp, _mesh->getTranslation());
 
 		fps++;
 		SDL_GL_SwapWindow(_window);
@@ -130,7 +129,7 @@ void Engine::_initGL() {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE0);
 
 	glViewport(0, 0, _width, _height);
 
@@ -148,7 +147,7 @@ void Engine::_initShaders() {
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.frag", ShaderType::fragment))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.geom", ShaderType::geometry))
 	 		.finalize();
-		_baseProgram->addUniform("mvp").addUniform("mv").addUniform("tex").addUniform("diffusePos");
+		_baseProgram->addUniform("mvp").addUniform("m").addUniform("tex").addUniform("diffusePos");
 	}
 }
 

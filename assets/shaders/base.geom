@@ -8,13 +8,13 @@ layout(triangle_strip, max_vertices = 6) out; //3*2 = triangle*2
 in vec3 vColor[];
 in vec2 vUV[];
 
-out vec4 position;
+out vec3 position;
 out vec3 normal;
 out vec3 color;
 out vec2 uv;
 
 uniform mat4 mvp;
-uniform mat4 mv;
+uniform mat4 m;
 
 void main() {
 	int i, j;
@@ -28,7 +28,7 @@ void main() {
 	for (j = 0; j < 2; j++) {
 		for (i = 0; i < gl_in.length; i++) {
 			gl_Position = mvp * (gl_in[i].gl_Position + offset);
-			position = mv * (gl_in[i].gl_Position + offset);
+			position = (gl_in[i].gl_Position + offset).xyz;
 			normal = n;
 			color = vColor[i];
 			uv = vUV[i];
