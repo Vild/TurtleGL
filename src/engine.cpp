@@ -39,7 +39,7 @@ int Engine::run() {
 					break;
 				case SDLK_LSHIFT:
 				case SDLK_RSHIFT:
-					_speed = 2.0f;
+					_speed = 2.5f;
 					break;
 				default:
 					break;
@@ -51,7 +51,7 @@ int Engine::run() {
 				switch (event.key.keysym.sym) {
 				case SDLK_LSHIFT:
 				case SDLK_RSHIFT:
-					_speed = 1.0f;
+					_speed = 5.0f;
 					break;
 				default:
 					break;
@@ -92,9 +92,10 @@ int Engine::run() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		_mesh->getTranslation() *= glm::rotate(delta, glm::vec3(0, 3, 0));
-		glm::mat4 mvp = _projection * _view * _mesh->getTranslation();
+		glm::mat4 mv = _view * _mesh->getTranslation();
+		glm::mat4 p = _projection;
 		
-		_mesh->render(mvp);
+		_mesh->render(p * mv, mv);
 
 		fps++;
 		SDL_GL_SwapWindow(_window);
@@ -147,7 +148,7 @@ void Engine::_initShaders() {
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.frag", ShaderType::fragment))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.geom", ShaderType::geometry))
 	 		.finalize();
-		_baseProgram->addUniform("mvp").addUniform("tex").addUniform("diffusePos");
+		_baseProgram->addUniform("mvp").addUniform("mv").addUniform("tex").addUniform("diffusePos");
 	}
 }
 
@@ -158,7 +159,7 @@ void Engine::_initMeshes() {
 				glm::vec3{-0.5f, 0.5f, 0.0f}, // pos
  				glm::vec3{0.0f, 0.0f, 0.0f},  // normal
 				glm::vec3{0.0f, 0.0f, 0.0f},  // color
-				glm::vec2{0.0f, 0.0f}         //UV
+				glm::vec2{0.0f, 0.0f}         // UV
 			},
 			Vertex { // Top-right
 				glm::vec3{0.5f, 0.5f, 0.0f},

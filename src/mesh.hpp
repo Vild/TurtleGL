@@ -21,7 +21,7 @@ public:
 	Mesh(std::shared_ptr<ShaderProgram> program, std::vector<Vertex> vertices, std::vector<GLuint> indices, const std::string & texture);
 	~Mesh();
 
-	void render(const glm::mat4 & mvp);
+	void render(const glm::mat4 & mvp, const glm::mat4 & mv);
 	//void render(std::vector<glm::mat4> mvp); // Instanc
 
 	glm::mat4 & getTranslation() {

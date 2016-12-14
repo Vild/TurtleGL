@@ -21,7 +21,7 @@ private:
 	uint32_t _width = 1280;
 	uint32_t _height = 720;
 
-	float _speed = 1.0f;
+	float _speed = 2.5f;
 	float _fov = 45.0f;
 	
 	float _yaw = M_PI; // -Z
