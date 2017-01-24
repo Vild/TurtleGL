@@ -23,7 +23,7 @@ ShaderUnit::ShaderUnit(const std::string & file, ShaderType type) {
 
 	GLint status;
 	glGetShaderiv(_unit, GL_COMPILE_STATUS, &status);
-	if (status == GL_FALSE) {
+	/*if (status == GL_FALSE)*/ {
 		GLint len;
 		glGetShaderiv(_unit, GL_INFO_LOG_LENGTH, &len);
         
@@ -39,8 +39,11 @@ ShaderUnit::ShaderUnit(const std::string & file, ShaderType type) {
 		}
 
 		char buf[0x1000];
-		snprintf(buf, sizeof(buf), "Compile failure in %s(%s) shader:\n%s\n", file.c_str(), strtype, errorLog.data());
-		throw ShaderUnitException(std::string(buf));
+		snprintf(buf, sizeof(buf), "Compile %s in %s(%s) shader:\n%s\n", status == GL_FALSE ? "failure" : "successful", file.c_str(), strtype, errorLog.data());
+		if (status == GL_FALSE)
+			throw ShaderUnitException(std::string(buf));
+		else
+			printf(buf);
 	}
 }
 

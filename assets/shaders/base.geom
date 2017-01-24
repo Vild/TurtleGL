@@ -26,7 +26,7 @@ void main() {
 	vec3 n = cross(e0, e1);
 	
 	for (j = 0; j < 2; j++) {
-		for (i = 0; i < gl_in.length; i++) {
+		for (i = 0; i < 3/*gl_in.length*/; i++) {
 			gl_Position = mvp * (gl_in[i].gl_Position + offset);
 			position = (gl_in[i].gl_Position + offset).xyz;
 			normal = n;
