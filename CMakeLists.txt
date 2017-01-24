@@ -5,6 +5,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # Compile options
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O0 -Wall -Werror")
+set(SDL2_PATH "${PROJECT_SOURCE_DIR}/windows")
 
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIR})
@@ -29,3 +30,9 @@ string(REGEX REPLACE "([^;]+)" "src/\\1.cpp" SOURCE_FILES "${SOURCE_FILES}")
 # Compile and Link
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES})
+if(WIN32)
+	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${PROJECT_SOURCE_DIR}/windows/lib/x84"
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+endif

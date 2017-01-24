@@ -1,158 +1,100 @@
-# Locate SDL2_image library
-# This module defines
-# SDL2_IMAGE_LIBRARY, the name of the library to link against
-# SDL2_IMAGE_FOUND, if false, do not try to link to SDL2_image
-# SDL2_IMAGE_INCLUDE_DIR, where to find SDL_image.h
+# Locate SDL_image library
 #
-# Additional Note: If you see an empty SDL2_IMAGE_LIBRARY_TEMP in your configuration
-# and no SDL2_IMAGE_LIBRARY, it means CMake did not find your SDL2_Image library
-# (SDL2_image.dll, libsdl2_image.so, SDL2_image.framework, etc).
-# Set SDL2_IMAGE_LIBRARY_TEMP to point to your SDL2 library, and configure again.
-# Similarly, if you see an empty SDL2MAIN_LIBRARY, you should set this value
-# as appropriate. These values are used to generate the final SDL2_IMAGE_LIBRARY
-# variable, but when these values are unset, SDL2_IMAGE_LIBRARY does not get created.
+# This module defines:
 #
-# $SDL2 is an environment variable that would
-# correspond to the ./configure --prefix=$SDL2
-# used in building SDL2.
-# l.e.galup 9-20-02
+# ::
 #
-# Modified by Eric Wing.
-# Added code to assist with automated building by using environmental variables
-# and providing a more controlled/consistent search behavior.
-# Added new modifications to recognize OS X frameworks and
+#   SDL_IMAGE_LIBRARIES, the name of the library to link against
+#   SDL_IMAGE_INCLUDE_DIRS, where to find the headers
+#   SDL_IMAGE_FOUND, if false, do not try to link against
+#   SDL_IMAGE_VERSION_STRING - human-readable string containing the version of SDL_image
+#
+#
+#
+# For backward compatiblity the following variables are also set:
+#
+# ::
+#
+#   SDLIMAGE_LIBRARY (same value as SDL_IMAGE_LIBRARIES)
+#   SDLIMAGE_INCLUDE_DIR (same value as SDL_IMAGE_INCLUDE_DIRS)
+#   SDLIMAGE_FOUND (same value as SDL_IMAGE_FOUND)
+#
+#
+#
+# $SDLDIR is an environment variable that would correspond to the
+# ./configure --prefix=$SDLDIR used in building SDL.
+#
+# Created by Eric Wing.  This was influenced by the FindSDL.cmake
+# module, but with modifications to recognize OS X frameworks and
 # additional Unix paths (FreeBSD, etc).
-# Also corrected the header search path to follow "proper" SDL2 guidelines.
-# Added a search for SDL2main which is needed by some platforms.
-# Added a search for threads which is needed by some platforms.
-# Added needed compile switches for MinGW.
-#
-# On OSX, this will prefer the Framework version (if found) over others.
-# People will have to manually change the cache values of
-# SDL2_IMAGE_LIBRARY to override this selection or set the CMake environment
-# CMAKE_INCLUDE_PATH to modify the search paths.
-#
-# Note that the header path has changed from SDL2/SDL.h to just SDL.h
-# This needed to change because "proper" SDL2 convention
-# is #include "SDL.h", not <SDL2/SDL.h>. This is done for portability
-# reasons because not all systems place things in SDL2/ (see FreeBSD).
-#
-# Ported by Johnny Patterson. This is a literal port for SDL2 of the FindSDL.cmake
-# module with the minor edit of changing "SDL" to "SDL2" where necessary. This
-# was not created for redistribution, and exists temporarily pending official
-# SDL2 CMake modules.
-# 
-# Note that on windows this will only search for the 32bit libraries, to search
-# for 64bit change x86/i686-w64 to x64/x86_64-w64
 
 #=============================================================================
-# Copyright 2003-2009 Kitware, Inc.
+# Copyright 2005-2009 Kitware, Inc.
+# Copyright 2012 Benjamin Eikel
 #
-# CMake - Cross Platform Makefile Generator
-# Copyright 2000-2014 Kitware, Inc.
-# Copyright 2000-2011 Insight Software Consortium
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions
-# are met:
-#
-# * Redistributions of source code must retain the above copyright
-# notice, this list of conditions and the following disclaimer.
-#
-# * Redistributions in binary form must reproduce the above copyright
-# notice, this list of conditions and the following disclaimer in the
-# documentation and/or other materials provided with the distribution.
-#
-# * Neither the names of Kitware, Inc., the Insight Software Consortium,
-# nor the names of their contributors may be used to endorse or promote
-# products derived from this software without specific prior written
-# permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# Distributed under the OSI-approved BSD License (the "License");
+# see accompanying file Copyright.txt for details.
 #
 # This software is distributed WITHOUT ANY WARRANTY; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the License for more information.
 #=============================================================================
 # (To distribute this file outside of CMake, substitute the full
-# License text for the above reference.)
+#  License text for the above reference.)
 
-FIND_PATH(SDL2_IMAGE_INCLUDE_DIR SDL_image.h
-	HINTS
-	${SDL2}
-	$ENV{SDL2}
-	$ENV{SDL2_IMAGE}
-	PATH_SUFFIXES include/SDL2 include SDL2
-	i686-w64-mingw32/include/SDL2
-	x86_64-w64-mingw32/include/SDL2
-	PATHS
-	~/Library/Frameworks
-	/Library/Frameworks
-	/usr/local/include/SDL2
-	/usr/include/SDL2
-	/sw # Fink
-	/opt/local # DarwinPorts
-	/opt/csw # Blastwave
-	/opt
-)
+find_path(SDL2_IMAGE_INCLUDE_DIR SDL_image.h
+        HINTS
+        ENV SDL2IMAGEDIR
+        ENV SDL2DIR
+        PATH_SUFFIXES SDL2
+        # path suffixes to search inside ENV{SDLDIR}
+        include/SDL2 include
+        PATHS ${SDL2_PATH}
+        )
 
-# Lookup the 64 bit libs on x64
-IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	FIND_LIBRARY(SDL2_IMAGE_LIBRARY_TEMP
-		NAMES SDL2_image
-		HINTS
-		${SDL2}
-		$ENV{SDL2}
-		$ENV{SDL2_IMAGE}
-		PATH_SUFFIXES lib64 lib
-		lib/x64
-		x86_64-w64-mingw32/lib
-		PATHS
-		/sw
-		/opt/local
-		/opt/csw
-		/opt
-	)
-# On 32bit build find the 32bit libs
-ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	FIND_LIBRARY(SDL2_IMAGE_LIBRARY_TEMP
-		NAMES SDL2_image
-		HINTS
-		${SDL2}
-		$ENV{SDL2}
-		$ENV{SDL2_IMAGE}
-		PATH_SUFFIXES lib
-		lib/x86
-		i686-w64-mingw32/lib
-		PATHS
-		/sw
-		/opt/local
-		/opt/csw
-		/opt
-	)
-ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(VC_LIB_PATH_SUFFIX lib/x64)
+else()
+    set(VC_LIB_PATH_SUFFIX lib/x86)
+endif()
 
-SET(SDL2_IMAGE_FOUND "NO")
-	IF(SDL2_IMAGE_LIBRARY_TEMP)
-	# Set the final string here so the GUI reflects the final state.
-	SET(SDL2_IMAGE_LIBRARY ${SDL2_IMAGE_LIBRARY_TEMP} CACHE STRING "Where the SDL2_image Library can be found")
-	# Set the temp variable to INTERNAL so it is not seen in the CMake GUI
-	SET(SDL2_IMAGE_LIBRARY_TEMP "${SDL2_IMAGE_LIBRARY_TEMP}" CACHE INTERNAL "")
-	SET(SDL2_IMAGE_FOUND "YES")
-ENDIF(SDL2_IMAGE_LIBRARY_TEMP)
+find_library(SDL2_IMAGE_LIBRARY
+        NAMES SDL2_image
+        HINTS
+        ENV SDL2IMAGEDIR
+        ENV SDL2DIR
+        PATH_SUFFIXES lib ${VC_LIB_PATH_SUFFIX}
+        PATHS ${SDL2_PATH}
+        )
 
-INCLUDE(FindPackageHandleStandardArgs)
+if(SDL2_IMAGE_INCLUDE_DIR AND EXISTS "${SDL2_IMAGE_INCLUDE_DIR}/SDL_image.h")
+    file(STRINGS "${SDL2_IMAGE_INCLUDE_DIR}/SDL_image.h" SDL_IMAGE_VERSION_MAJOR_LINE REGEX "^#define[ \t]+SDL_IMAGE_MAJOR_VERSION[ \t]+[0-9]+$")
+    file(STRINGS "${SDL2_IMAGE_INCLUDE_DIR}/SDL_image.h" SDL2_IMAGE_VERSION_MINOR_LINE REGEX "^#define[ \t]+SDL2_IMAGE_MINOR_VERSION[ \t]+[0-9]+$")
+    file(STRINGS "${SDL2_IMAGE_INCLUDE_DIR}/SDL_image.h" SDL2_IMAGE_VERSION_PATCH_LINE REGEX "^#define[ \t]+SDL2_IMAGE_PATCHLEVEL[ \t]+[0-9]+$")
+    string(REGEX REPLACE "^#define[ \t]+SDL2_IMAGE_MAJOR_VERSION[ \t]+([0-9]+)$" "\\1" SDL2_IMAGE_VERSION_MAJOR "${SDL2_IMAGE_VERSION_MAJOR_LINE}")
+    string(REGEX REPLACE "^#define[ \t]+SDL2_IMAGE_MINOR_VERSION[ \t]+([0-9]+)$" "\\1" SDL2_IMAGE_VERSION_MINOR "${SDL2_IMAGE_VERSION_MINOR_LINE}")
+    string(REGEX REPLACE "^#define[ \t]+SDL2_IMAGE_PATCHLEVEL[ \t]+([0-9]+)$" "\\1" SDL2_IMAGE_VERSION_PATCH "${SDL2_IMAGE_VERSION_PATCH_LINE}")
+    set(SDL2_IMAGE_VERSION_STRING ${SDL2_IMAGE_VERSION_MAJOR}.${SDL2_IMAGE_VERSION_MINOR}.${SDL2_IMAGE_VERSION_PATCH})
+    unset(SDL2_IMAGE_VERSION_MAJOR_LINE)
+    unset(SDL2_IMAGE_VERSION_MINOR_LINE)
+    unset(SDL2_IMAGE_VERSION_PATCH_LINE)
+    unset(SDL2_IMAGE_VERSION_MAJOR)
+    unset(SDL2_IMAGE_VERSION_MINOR)
+    unset(SDL2_IMAGE_VERSION_PATCH)
+endif()
 
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(SDL2_IMAGE REQUIRED_VARS SDL2_IMAGE_LIBRARY SDL2_IMAGE_INCLUDE_DIR)
+set(SDL2_IMAGE_LIBRARIES ${SDL2_IMAGE_LIBRARY})
+set(SDL2_IMAGE_INCLUDE_DIRS ${SDL2_IMAGE_INCLUDE_DIR})
 
+include(FindPackageHandleStandardArgs)
+
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(SDL2_image
+        REQUIRED_VARS SDL2_IMAGE_LIBRARIES SDL2_IMAGE_INCLUDE_DIRS
+        VERSION_VAR SDL2_IMAGE_VERSION_STRING)
+
+# for backward compatiblity
+#set(SDLIMAGE_LIBRARY ${SDL_IMAGE_LIBRARIES})
+#set(SDLIMAGE_INCLUDE_DIR ${SDL_IMAGE_INCLUDE_DIRS})
+#set(SDLIMAGE_FOUND ${SDL_IMAGE_FOUND})
+
+mark_as_advanced(SDL2_IMAGE_LIBRARY SDL2_IMAGE_INCLUDE_DIR)

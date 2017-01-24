@@ -7,3 +7,7 @@ compile_commands.json
 objs/
 *.trace
 build/
+*.dll
+*.exe
+*.lib
+windows/
