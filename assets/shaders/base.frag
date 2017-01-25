@@ -16,8 +16,8 @@ void main() {
 	vec3 n = normalize((m * vec4(normal, 1)).xyz);
 	vec3 pos = (m * vec4(position, 1)).xyz;
 	
-	vec3 fromLight = normalize(diffusePos - pos);
-	float diffuse = max(0, dot(n, fromLight));
+	vec3 toLight = normalize(diffusePos - pos);
+	float diffuse = max(0, dot(n, toLight));
 	
 	outColor = texture(tex, uv) * vec4(color, 1.0) * diffuse;
 }

@@ -91,7 +91,7 @@ int Engine::run() {
 		glClearColor(0.0, 0.0, 0.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		_mesh->getTranslation() *= glm::rotate(delta, glm::vec3(0, 1.5, 0));
+		_mesh->getTranslation() *= glm::rotate(delta, glm::vec3(0, -1.5, 0));
 		glm::mat4 mvp = _projection * _view * _mesh->getTranslation();
 		
 		_mesh->render(mvp, _mesh->getTranslation());
