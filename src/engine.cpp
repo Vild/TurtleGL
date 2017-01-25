@@ -20,7 +20,7 @@ Engine::~Engine() {
 
 int Engine::run() {
 	_quit = false;
-	int fps;
+	int fps = 0;
 	uint32_t lastTime = SDL_GetTicks();
 	
 	_updateMatrices(0, false);
