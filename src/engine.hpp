@@ -16,24 +16,25 @@ public:
 	Engine();
 	~Engine();
 
-	int run();	
+	int run();
+
 private:
 	uint32_t _width = 1280;
 	uint32_t _height = 720;
 
 	float _speed = 2.5f;
 	float _fov = 45.0f;
-	
-	float _yaw = 0;// +Z (at 0, 0, 0)
+
+	float _yaw = 0; // +Z (at 0, 0, 0)
 	float _pitch = 0.0f;
-	
+
 	glm::vec3 _position = glm::vec3(0, 0, -2);
-	
+
 	glm::mat4 _projection;
 	glm::mat4 _view;
-	
+
 	bool _quit;
-	SDL_Window * _window;
+	SDL_Window* _window;
 	SDL_GLContext _context;
 
 	std::shared_ptr<ShaderProgram> _baseProgram; // The base shader for everything
@@ -46,4 +47,3 @@ private:
 
 	void _updateMatrices(float delta, bool updateCamera);
 };
-

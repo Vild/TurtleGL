@@ -13,44 +13,38 @@
 #include "scopeexit.hpp"
 
 enum class ShaderType {
-	vertex = GL_VERTEX_SHADER,
-	fragment = GL_FRAGMENT_SHADER,
-	geometry = GL_GEOMETRY_SHADER
+	vertex = GL_VERTEX_SHADER,		 //
+	fragment = GL_FRAGMENT_SHADER, //
+	geometry = GL_GEOMETRY_SHADER	//
 };
 
 class ShaderException : public std::exception {
 public:
-	ShaderException(const std::string & msg) {
-		_what = msg;
-	}
-	
-	const char * what() const noexcept {
-		return _what.c_str();
-	}
+	ShaderException(const std::string& msg) { _what = msg; }
+
+	const char* what() const noexcept { return _what.c_str(); }
+
 private:
 	std::string _what;
 };
 
 class ShaderUnitException : public ShaderException {
 public:
-	ShaderUnitException(const std::string & msg) : ShaderException(msg) {}
+	ShaderUnitException(const std::string& msg) : ShaderException(msg) {}
 };
-
 
 class ShaderProgramException : public ShaderException {
 public:
-	ShaderProgramException(const std::string & msg) : ShaderException(msg) {}
+	ShaderProgramException(const std::string& msg) : ShaderException(msg) {}
 };
-
 
 class ShaderUnit {
 public:
-	ShaderUnit(const std::string & file, ShaderType type);
+	ShaderUnit(const std::string& file, ShaderType type);
 	~ShaderUnit();
 
-	inline GLuint getUnit() const {
-		return _unit;
-	}
+	inline GLuint getUnit() const { return _unit; }
+
 private:
 	GLuint _unit = GL_FALSE;
 };
@@ -60,19 +54,19 @@ public:
 	ShaderProgram();
 	~ShaderProgram();
 
-	ShaderProgram & attach(std::shared_ptr<ShaderUnit> unit);
+	ShaderProgram& attach(std::shared_ptr<ShaderUnit> unit);
 
 	void finalize();
 
-	ShaderProgram & addUniform(const std::string & name);
+	ShaderProgram& addUniform(const std::string& name);
 
 	void bind() const;
 
-	GLint getAttribute(const std::string & name) const;
+	GLint getAttribute(const std::string& name) const;
 
-	ShaderProgram & setUniform(const std::string & name, const glm::vec3 & value);
-	ShaderProgram & setUniform(const std::string & name, const glm::mat4 & value);
-	ShaderProgram & setUniform(const std::string & name, int value);
+	ShaderProgram& setUniform(const std::string& name, const glm::vec3& value);
+	ShaderProgram& setUniform(const std::string& name, const glm::mat4& value);
+	ShaderProgram& setUniform(const std::string& name, int value);
 
 private:
 	GLuint _program = GL_FALSE;

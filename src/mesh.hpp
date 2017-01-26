@@ -18,20 +18,16 @@ struct Vertex {
 
 class Mesh {
 public:
-	Mesh(std::shared_ptr<ShaderProgram> program, std::vector<Vertex> vertices, std::vector<GLuint> indices, const std::string & texture);
+	Mesh(std::shared_ptr<ShaderProgram> program, std::vector<Vertex> vertices, std::vector<GLuint> indices, const std::string& texture);
 	~Mesh();
 
-	void render(const glm::mat4 & mvp, const glm::mat4 & m);
-	//void render(std::vector<glm::mat4> mvp); // Instanc
+	void render(const glm::mat4& mvp, const glm::mat4& m);
+	// void render(std::vector<glm::mat4> mvp); // Instanc
 
-	glm::mat4 & getTranslation() {
-		return _translation;
-	}
-	
-	const glm::mat4 & getTranslation() const {
-		return _translation;
-	}
-	
+	glm::mat4& getTranslation() { return _translation; }
+
+	const glm::mat4& getTranslation() const { return _translation; }
+
 private:
 	std::shared_ptr<ShaderProgram> _program;
 	std::vector<Vertex> _vertices;
