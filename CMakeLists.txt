@@ -27,11 +27,7 @@ include_directories(${GLEW_INCLUDE_DIRS})
 
 
 # Source files
-#src/main.cpp src/engine.cpp src/scopeexit.cpp src/shader.cpp src/mesh.cpp
-file(STRINGS "Sources.txt" SOURCE_FILES)
-separate_arguments(SOURCE_FILES)
-
-string(REGEX REPLACE "([^;]+)" "src/\\1.cpp" SOURCE_FILES "${SOURCE_FILES}")
+file(GLOB_RECURSE SOURCE_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 # Compile and Link
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
