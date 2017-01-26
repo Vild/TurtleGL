@@ -20,16 +20,16 @@ vec3 phongFunc(){
 	vec3 toLight = normalize(diffusePos - pos);
 	vec3 v = normalize(-pos);
 	vec3 r = normalize(reflect(-toLight, n));
-	
+
 	vec3 ks = vec3(1.0f, 1.0f, 1.0f);
 	float shininess = 2.0f;
 	vec3 specularLight = ks * pow(max(0.0, dot(r, v)), shininess);
-	
+
 	vec3 ambientLight = vec3(0.2f, 0.2f, 0.2f);
-	
-	float diffuse = max(0.0, dot(n, fromLight));
+
+	float diffuse = max(0.0, dot(n, toLight));
 	vec3 diffuseLight = diffuse * color;
-	
+
 	return diffuseLight + ambientLight + specularLight;
 }
 
