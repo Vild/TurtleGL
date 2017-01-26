@@ -12,7 +12,7 @@ Engine::Engine() {
 
 Engine::~Engine() {
 	IMG_Quit();
-	
+
 	SDL_GL_DeleteContext(_context);
 	SDL_DestroyWindow(_window);
 	SDL_Quit();
@@ -22,7 +22,7 @@ int Engine::run() {
 	_quit = false;
 	int fps = 0;
 	uint32_t lastTime = SDL_GetTicks();
-	
+
 	_updateMatrices(0, false);
 	bool updateCamera = false;
 	while (!_quit) {
@@ -44,9 +44,9 @@ int Engine::run() {
 				default:
 					break;
 				}
-				
+
 				break;
-				
+
 			case SDL_KEYUP:
 				switch (event.key.keysym.sym) {
 				case SDLK_LSHIFT:
@@ -56,7 +56,7 @@ int Engine::run() {
 				default:
 					break;
 				}
-				
+
 			case SDL_MOUSEBUTTONDOWN:
 				if (event.button.button == SDL_BUTTON_RIGHT) {
 					updateCamera = true;
@@ -64,7 +64,7 @@ int Engine::run() {
 					SDL_WarpMouseInWindow(_window, _width/2, _height/2);
 				}
 				break;
-				
+
 			case SDL_MOUSEBUTTONUP:
 				if (event.button.button == SDL_BUTTON_RIGHT) {
 					updateCamera = false;
@@ -93,7 +93,7 @@ int Engine::run() {
 
 		_mesh->getTranslation() *= glm::rotate(delta, glm::vec3(0, -1.5, 0));
 		glm::mat4 mvp = _projection * _view * _mesh->getTranslation();
-		
+
 		_mesh->render(mvp, _mesh->getTranslation());
 
 		fps++;
@@ -107,8 +107,8 @@ int Engine::run() {
 void Engine::_initSDL() {
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 		throw "SDL could not be inited";
-	
-	_window = SDL_CreateWindow("Lab2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, _width, _height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+
+	_window = SDL_CreateWindow("TurtleGL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, _width, _height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 	if (!_window)
 		throw "Failed to create window";
 }
@@ -119,7 +119,7 @@ void Engine::_initGL() {
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-		
+
 	_context = SDL_GL_CreateContext(_window);
 	glewExperimental = GL_TRUE;
 	if (glewInit())
@@ -136,7 +136,7 @@ void Engine::_initGL() {
 	if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG)
 		throw "Failed to load SDL_Image";
 
-	
+
 }
 
 void Engine::_initShaders() {
@@ -197,7 +197,7 @@ void Engine::_updateMatrices(float delta, bool updateCamera) {
 
 		x = _width/2 - x;
 		y = _height/2 - y;
-		
+
 		float mspeed = 0.005f;
 		_yaw += mspeed * x;
 		_pitch += mspeed * y;
@@ -218,13 +218,13 @@ void Engine::_updateMatrices(float delta, bool updateCamera) {
 	if (state[SDL_SCANCODE_D])
 		_position += right * delta * _speed;
 
-	
+
 	if (state[SDL_SCANCODE_SPACE])
 		_position += up * delta * _speed;
 	if (state[SDL_SCANCODE_LCTRL])
 		_position -= up * delta * _speed;
 
-	
+
 	_projection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 20.0f);
 	_view = glm::lookAt(_position, _position + forward, up);
 	glViewport(0, 0, _width, _height);
