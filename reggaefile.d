@@ -5,21 +5,26 @@ enum CompileCommand {
 	Link = "g++ -std=c++11 -O3 -ggdb -Wall -lSDL2 -lSDL2_image -lGL -lGLEW $in -o $out",
 }
 
-Target[] MakeObjects(string[] files, string[] headers) {
+Target[] MakeObjects(string[] files) {
+	import std.file : dirEntries, SpanMode;
+	import std.process : executeShell;
+	import std.algorithm : map;
+	import std.array : array, replace, split;
+
 	Target[] objs;
-	Target[] head;
 
-	foreach (h; headers)
-		head ~= Target("src/"~h~".hpp");
+	foreach (f; dirEntries("src/", "*.cpp", SpanMode.breadth).filter!(x => !x.isDir)) {
+		auto head = executeShell("g++ -MM " ~ f).output.split(":")[1].replace("\n", " ").split(" ").filter!(s => !s.empty && s != "\\").map!(x => Target(x)).array;
+		objs ~= Target(f ~ ".o", CompileCommand.Compile, [Target(f)], head);
+	}
 
-	foreach (f; files)
-		objs ~= Target(f~".o", CompileCommand.Compile, [Target("src/" ~ f ~ ".cpp")], head);
-	
 	return objs;
 }
 
-enum objs = MakeObjects(["main", "engine", "scopeexit", "shader", "mesh"], ["engine", "scopeexit", "shader", "mesh"]);
+Build myBuild() {
+	auto objs = MakeObjects(["main.cpp", "engine.cpp", "scopeexit.cpp", "shader.cpp", "mesh.cpp"]);
 
-enum raycast = Target("turtlegl", CompileCommand.Link, objs);
+	auto raycast = Target("turtlegl", CompileCommand.Link, objs);
 
-mixin build!(raycast);
+	return Build(raycast);
+}
