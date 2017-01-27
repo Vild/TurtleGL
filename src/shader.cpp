@@ -32,18 +32,18 @@ ShaderUnit::ShaderUnit(const std::string& file, ShaderType type) {
 
 		const char* strtype;
 		switch (type) {
-			case ShaderType::vertex:
-				strtype = "vertex";
-				break;
-			case ShaderType::fragment:
-				strtype = "fragment";
-				break;
-			case ShaderType::geometry:
-				strtype = "geometry";
-				break;
-			default:
-				strtype = "(unknown)";
-				break;
+		case ShaderType::vertex:
+			strtype = "vertex";
+			break;
+		case ShaderType::fragment:
+			strtype = "fragment";
+			break;
+		case ShaderType::geometry:
+			strtype = "geometry";
+			break;
+		default:
+			strtype = "(unknown)";
+			break;
 		}
 
 		char buf[0x1000];
@@ -117,16 +117,28 @@ GLint ShaderProgram::getAttribute(const std::string& name) const {
 }
 
 ShaderProgram& ShaderProgram::setUniform(const std::string& name, const glm::vec3& value) {
-	glUniform3fv(_uniform[name], 1, glm::value_ptr(value));
+	try {
+		glUniform3fv(_uniform.at(name), 1, glm::value_ptr(value));
+	} catch (std::out_of_range& e) {
+		throw ShaderProgramException(std::string("Uniform is missing! Did you forget to use that variable in that shader?: ") + name);
+	}
 	return *this;
 }
 
 ShaderProgram& ShaderProgram::setUniform(const std::string& name, const glm::mat4& value) {
-	glUniformMatrix4fv(_uniform[name], 1, GL_FALSE, glm::value_ptr(value));
+	try {
+		glUniformMatrix4fv(_uniform.at(name), 1, GL_FALSE, glm::value_ptr(value));
+	} catch (std::out_of_range& e) {
+		throw ShaderProgramException(std::string("Uniform is missing! Did you forget to use that variable in that shader?: ") + name);
+	}
 	return *this;
 }
 
 ShaderProgram& ShaderProgram::setUniform(const std::string& name, int value) {
-	glUniform1i(_uniform[name], value);
+	try {
+		glUniform1i(_uniform.at(name), value);
+	} catch (std::out_of_range& e) {
+		throw ShaderProgramException(std::string("Uniform is missing! Did you forget to use that variable in that shader?: ") + name);
+	}
 	return *this;
 }
