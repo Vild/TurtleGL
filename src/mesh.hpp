@@ -19,10 +19,10 @@ struct Vertex {
 class Mesh {
 public:
 	Mesh(std::shared_ptr<ShaderProgram> program, std::vector<Vertex> vertices, std::vector<GLuint> indices);
+	Mesh(std::shared_ptr<ShaderProgram> program, const std::string & file);
 	virtual ~Mesh();
 
 	void render(const glm::mat4& mvp);
-	void loadObj(std::string fileName);
 
 	glm::mat4& getTranslation() { return _translation; }
 	const glm::mat4& getTranslation() const { return _translation; }
@@ -36,4 +36,8 @@ private:
 	GLuint _ibo;
 
 	glm::mat4 _translation; // for the mvp
+
+	void _makeBuffers();
+	void _loadObj(std::string fileName);
+	void _uploadData();
 };
