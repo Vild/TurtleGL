@@ -10,11 +10,14 @@
 #include "scopeexit.hpp"
 #include "shader.hpp"
 #include "mesh.hpp"
+#include "framebuffer.hpp"
+#include "texture.hpp"
+#include "entity/box.hpp"
 
 class Engine {
 public:
 	Engine();
-	~Engine();
+	virtual ~Engine();
 
 	int run();
 
@@ -38,12 +41,30 @@ private:
 	SDL_GLContext _context;
 
 	std::shared_ptr<ShaderProgram> _baseProgram; // The base shader for everything
-	std::shared_ptr<Mesh> _mesh;
+	std::shared_ptr<Texture> _brickTexture;
+	std::shared_ptr<Box> _box;
+
+
+	// Deferred stuff
+	std::shared_ptr<ShaderProgram> _deferredProgram;
+	std::shared_ptr<Mesh> _deferredPlane;
+
+	std::shared_ptr<Framebuffer> _screen;
+	std::shared_ptr<Framebuffer> _deferred;
+
+	static const int LIGHT_COUNT = 16;
+	glm::vec3 _lightsPos[LIGHT_COUNT];
+	glm::vec3 _lightsColor[LIGHT_COUNT];
+	std::shared_ptr<Box> _lightCube;
+	std::shared_ptr<ShaderProgram> _lightProgram;
 
 	void _initSDL();
 	void _initGL();
 	void _initShaders();
 	void _initMeshes();
+	void _initFramebuffers();
+	void _initLights();
 
-	void _updateMatrices(float delta, bool updateCamera);
+	void _resolutionChanged();
+	void _updateMovement(float delta, bool updateCamera);
 };

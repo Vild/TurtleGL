@@ -41,7 +41,7 @@ public:
 class ShaderUnit {
 public:
 	ShaderUnit(const std::string& file, ShaderType type);
-	~ShaderUnit();
+	virtual ~ShaderUnit();
 
 	inline GLuint getUnit() const { return _unit; }
 
@@ -52,7 +52,7 @@ private:
 class ShaderProgram {
 public:
 	ShaderProgram();
-	~ShaderProgram();
+	virtual ~ShaderProgram();
 
 	ShaderProgram& attach(std::shared_ptr<ShaderUnit> unit);
 
@@ -60,11 +60,12 @@ public:
 
 	ShaderProgram& addUniform(const std::string& name);
 
-	void bind() const;
+	ShaderProgram& bind();
 
 	GLint getAttribute(const std::string& name) const;
 
 	ShaderProgram& setUniform(const std::string& name, const glm::vec3& value);
+	ShaderProgram& setUniform(const std::string& name, const glm::vec3* values, GLuint count);
 	ShaderProgram& setUniform(const std::string& name, const glm::mat4& value);
 	ShaderProgram& setUniform(const std::string& name, int value);
 

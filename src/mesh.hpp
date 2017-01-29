@@ -18,11 +18,10 @@ struct Vertex {
 
 class Mesh {
 public:
-	Mesh(std::shared_ptr<ShaderProgram> program, std::vector<Vertex> vertices, std::vector<GLuint> indices, const std::string& texture);
-	~Mesh();
+	Mesh(std::shared_ptr<ShaderProgram> program, std::vector<Vertex> vertices, std::vector<GLuint> indices);
+	virtual ~Mesh();
 
-	void render(const glm::mat4& mvp, const glm::mat4& m);
-	// void render(std::vector<glm::mat4> mvp); // Instanc
+	void render(const glm::mat4& mvp);
 
 	glm::mat4& getTranslation() { return _translation; }
 
@@ -36,7 +35,6 @@ private:
 	GLuint _vao;
 	GLuint _vbo;
 	GLuint _ibo;
-	GLuint _texture;
 
 	glm::mat4 _translation; // for the mvp
 };
