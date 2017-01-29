@@ -91,10 +91,11 @@ int Engine::run() {
 		glClearColor(0.0, 0.0, 0.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		_mesh->getTranslation() *= glm::rotate(delta, glm::vec3(0, -1.5, 0));
-		glm::mat4 mvp = _projection * _view * _mesh->getTranslation();
+		glm::mat4 model = _mesh->getTranslation() * glm::rotate(delta, glm::vec3(0, -1.5, 0)) * glm::scale(glm::vec3(0.1f, 0.1f, 0.1f));
+		
+		glm::mat4 mvp = _projection * _view * model;
 
-		_mesh->render(mvp, _mesh->getTranslation());
+		_mesh->render(mvp, model);
 
 		fps++;
 		SDL_GL_SwapWindow(_window);
@@ -149,40 +150,41 @@ void Engine::_initShaders() {
 
 void Engine::_initMeshes() {
 	{
-		std::vector<Vertex> vertices{
-			//
-			Vertex{
-				// Top-left
-				glm::vec3{-0.5f, 0.5f, 0.0f}, // pos
-				glm::vec3{0.0f, 0.0f, 0.0f},	// normal
-				glm::vec3{0.0f, 0.0f, 0.0f},	// color
-				glm::vec2{0.0f, 0.0f}					// UV
-			},															//
-			Vertex{
-				// Top-right
-				glm::vec3{0.5f, 0.5f, 0.0f}, //
-				glm::vec3{0.0f, 0.0f, 0.0f}, //
-				glm::vec3{1.0f, 0.0f, 0.0f}, //
-				glm::vec2{1.0f, 0.0f}				 //
-			},														 //
-			Vertex{
-				// Bottom-right
-				glm::vec3{0.5f, -0.5f, 0.0f}, //
-				glm::vec3{0.0f, 0.0f, 0.0f},	//
-				glm::vec3{1.0f, 1.0f, 0.0f},	//
-				glm::vec2{1.0f, 1.0f}					//
-			},															//
-			Vertex{
-				// Bottom-left
-				glm::vec3{-0.5f, -0.5f, 0.0f}, //
-				glm::vec3{0.0f, 0.0f, 0.0f},	 //
-				glm::vec3{0.0f, 1.0f, 0.0f},	 //
-				glm::vec2{0.0f, 1.0f}					 //
-			}																 //
-		};																 //
-
-		std::vector<GLuint> indicies{0, 2, 1, 2, 0, 3};
-
+		//std::vector<Vertex> vertices{
+		//	//
+		//	Vertex{
+		//		// Top-left
+		//		glm::vec3{-0.5f, 0.5f, 0.0f}, // pos
+		//		glm::vec3{0.0f, 0.0f, 0.0f},	// normal
+		//		glm::vec3{0.0f, 0.0f, 0.0f},	// color
+		//		glm::vec2{0.0f, 0.0f}					// UV
+		//	},															//
+		//	Vertex{
+		//		// Top-right
+		//		glm::vec3{0.5f, 0.5f, 0.0f}, //
+		//		glm::vec3{0.0f, 0.0f, 0.0f}, //
+		//		glm::vec3{1.0f, 0.0f, 0.0f}, //
+		//		glm::vec2{1.0f, 0.0f}				 //
+		//	},														 //
+		//	Vertex{
+		//		// Bottom-right
+		//		glm::vec3{0.5f, -0.5f, 0.0f}, //
+		//		glm::vec3{0.0f, 0.0f, 0.0f},	//
+		//		glm::vec3{1.0f, 1.0f, 0.0f},	//
+		//		glm::vec2{1.0f, 1.0f}					//
+		//	},															//
+		//	Vertex{
+		//		// Bottom-left
+		//		glm::vec3{-0.5f, -0.5f, 0.0f}, //
+		//		glm::vec3{0.0f, 0.0f, 0.0f},	 //
+		//		glm::vec3{0.0f, 1.0f, 0.0f},	 //
+		//		glm::vec2{0.0f, 1.0f}					 //
+		//	}																 //
+		//};																 //
+		//
+		//std::vector<GLuint> indicies{0, 2, 1, 2, 0, 3};
+		std::vector<Vertex> vertices;
+		std::vector<GLuint> indicies;
 		_mesh = std::make_shared<Mesh>(_baseProgram, vertices, indicies, "assets/textures/bth.png");
 	}
 }
@@ -221,7 +223,7 @@ void Engine::_updateMatrices(float delta, bool updateCamera) {
 	if (state[SDL_SCANCODE_LCTRL])
 		_position -= up * delta * _speed;
 
-	_projection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 20.0f);
+	_projection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 100.0f);
 	_view = glm::lookAt(_position, _position + forward, up);
 	glViewport(0, 0, _width, _height);
 }
