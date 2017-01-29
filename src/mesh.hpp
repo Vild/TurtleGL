@@ -22,11 +22,10 @@ public:
 	virtual ~Mesh();
 
 	void render(const glm::mat4& mvp);
+	void loadObj(std::string fileName);
 
 	glm::mat4& getTranslation() { return _translation; }
-
 	const glm::mat4& getTranslation() const { return _translation; }
-
 private:
 	std::shared_ptr<ShaderProgram> _program;
 	std::vector<Vertex> _vertices;
