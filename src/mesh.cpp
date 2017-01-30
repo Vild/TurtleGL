@@ -3,12 +3,12 @@
 #include <cstddef>
 
 Mesh::Mesh(std::shared_ptr<ShaderProgram> program, std::vector<Vertex> vertices, std::vector<GLuint> indices)
-	: _program(program), _vertices(vertices), _indices(indices) {
+	: _program(program), _vertices(vertices), _indices(indices), _translation(glm::mat4(1)) {
 	_makeBuffers();
 	_uploadData();
 }
 
-Mesh::Mesh(std::shared_ptr<ShaderProgram> program, const std::string& file) : _program(program) {
+Mesh::Mesh(std::shared_ptr<ShaderProgram> program, const std::string& file) : _program(program), _translation(glm::mat4(1)) {
 	_makeBuffers();
 	_loadObj(file);
 	_uploadData();
@@ -26,10 +26,6 @@ void Mesh::render(const glm::mat4& mvp) {
 	glBindVertexArray(_vao);
 
 	_program->setUniform("mvp", mvp);
-	try {
-		_program->setUniform("diffusePos", glm::vec3(0, 0, -2));
-	} catch (ShaderProgramException e) {
-	}
 	glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, NULL);
 }
 

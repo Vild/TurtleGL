@@ -42,7 +42,7 @@ int Engine::run() {
 					break;
 				case SDLK_LSHIFT:
 				case SDLK_RSHIFT:
-					_speed = 2.5f;
+					_speed = 10.0f;
 					break;
 				default:
 					break;
@@ -130,7 +130,7 @@ int Engine::run() {
 		// Render step 3 - Render lightsources
 		// Render step 3.1 - Move deferred depth buffer to screen
 		_deferred->bind(true, false);
-		_screen->bind(true, false);
+		_screen->bind(false, true);
 		glBlitFramebuffer(0, 0, _width, _height, 0, 0, _width, _height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		_screen->bind();
 
@@ -138,7 +138,7 @@ int Engine::run() {
 		_lightProgram->bind();
 		for (int i = 0; i < LIGHT_COUNT; i++) {
 			_lightProgram->setUniform("lightColor", _lightsColor[i]);
-			glm::mat4 model = glm::translate(_lightsPos[i]) * _lightCube->getTranslation();
+			glm::mat4 model = glm::scale(glm::translate(_lightsPos[i]), glm::vec3(1.0/8.0)); // * _lightCube->getTranslation();
 			glm::mat4 mvp = _projection * _view * model;
 			_baseProgram->setUniform("m", model);
 			_lightCube->render(mvp);
@@ -172,7 +172,7 @@ void Engine::_initGL() {
 	if (glewInit())
 		throw "Failed to init glew";
 
-	SDL_GL_SetSwapInterval(1);
+	SDL_GL_SetSwapInterval(0);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -235,9 +235,16 @@ void Engine::_initFramebuffers() {
 
 void Engine::_initLights() {
 	for (int i = 0; i < LIGHT_COUNT; i++)
-		_lightsPos[i] = glm::vec3{(i / 4) * 4, ((i % 4) - (LIGHT_COUNT / 2)) * 4, -5};
-	for (int i = 0; i < LIGHT_COUNT; i++)
-		_lightsColor[i] = glm::vec3{(i % 4) / 4.0, 1, (i / 4) / 4.0};
+		_lightsPos[i] = glm::vec3{((i % 8) % 3) * 4, 2 + (i / 8) * 4, ((i % 8) / 3) * 4 - 2};
+	for (int i = 0; i < LIGHT_COUNT; i++) {
+		float r = (i % 4) / 4.0;
+		float g = (i / 4) / 4.0;
+		float b = 1 - r - g;
+		if (b < 0)
+			b = 0;
+
+		_lightsColor[i] = glm::vec3{r, g, b};
+	}
 
 	_deferredProgram->bind().setUniform("lightsPos", _lightsPos, LIGHT_COUNT).setUniform("lightsColor", _lightsColor, LIGHT_COUNT);
 

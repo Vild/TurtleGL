@@ -25,8 +25,8 @@ private:
 	uint32_t _width = 1280;
 	uint32_t _height = 720;
 
-	float _speed = 2.5f;
-	float _fov = 45.0f;
+	float _speed = 5.0f;
+	float _fov = 80.0f;
 
 	float _yaw = 0; // +Z (at 0, 0, 0)
 	float _pitch = 0.0f;
