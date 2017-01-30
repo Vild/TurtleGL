@@ -38,6 +38,6 @@ private:
 	glm::mat4 _translation; // for the mvp
 
 	void _makeBuffers();
-	void _loadObj(std::string fileName);
+	void _loadObj(const std::string& fileName);
 	void _uploadData();
 };
