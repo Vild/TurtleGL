@@ -10,7 +10,7 @@ Mesh::Mesh(std::shared_ptr<ShaderProgram> program, std::vector<Vertex> vertices,
 
 Mesh::Mesh(std::shared_ptr<ShaderProgram> program, const std::string& file) : _program(program) {
 	_makeBuffers();
-	_loadObj("D:\\Objects\\hitler\\hitler_full.obj");
+	_loadObj(file);
 	_uploadData();
 }
 
@@ -43,7 +43,7 @@ void Mesh::_makeBuffers() {
 	_ibo = buffers[1];
 }
 
-void Mesh::_loadObj(std::string fileName) {
+void Mesh::_loadObj(const std::string& fileName) {
 	std::vector<unsigned int> vIndicies, uvIndicies, nIndicies;
 	std::vector<glm::vec3> tmp_vertices;
 	std::vector<glm::vec2> tmp_uvs;
@@ -106,6 +106,7 @@ void Mesh::_loadObj(std::string fileName) {
 		tmp.position = vertex;
 		tmp.uv = uv;
 		tmp.normal = normal;
+		tmp.color = glm::vec3(0,0,255);
 		_vertices.push_back(tmp);
 		_indices.push_back(i);
 	}
