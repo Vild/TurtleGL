@@ -108,6 +108,11 @@ int Engine::run() {
 				_baseProgram->setUniform("m", model);
 				_box->render(mvp);
 			}
+		glm::mat4 model = glm::translate(glm::vec3(0,0,0)) * 
+			glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0)) * 
+			glm::scale(glm::vec3(5.0f, 5.0f, 5.0f));
+		_baseProgram->setUniform("m", model);
+		_sphere->render(_projection * _view * model);
 
 		// Render step 2 - Render to screen
 		_screen->bind();
@@ -212,7 +217,7 @@ void Engine::_initMeshes() {
 		};
 		std::vector<GLuint> indicies = {0, 2, 1, 2, 0, 3};
 		_deferredPlane = std::make_shared<Mesh>(_deferredProgram, verticies, indicies);
-
+		_sphere = std::make_shared<Mesh>(_baseProgram, "assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj");
 		_brickTexture = std::make_shared<Texture>("assets/textures/brick.png");
 	}
 }
