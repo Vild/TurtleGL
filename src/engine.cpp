@@ -90,6 +90,7 @@ int Engine::run() {
 		float delta = (curTime - lastTime) / 1000.0f;
 		lastTime = curTime;
 		_updateMovement(delta, updateCamera);
+		glm::mat4 vp = _projection * _view;
 
 		// Render step 1 - Render everything to deferredFB
 		_deferred->bind();
@@ -99,20 +100,17 @@ int Engine::run() {
 		_baseProgram->bind();
 		_brickTexture->bind(0);
 		_baseProgram->setUniform("brickTex", 0);
-		_box->getTranslation() *= glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0));
+		_baseBoxMatrix *= glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0));
 
 		for (int y = 0; y < 3; y++)
-			for (int i = 0; i < 3 * 3; i++) {
-				glm::mat4 model = glm::translate(glm::vec3{(i % 3) * 4, y * 4, (i / 3) * 4}) * _box->getTranslation();
-				glm::mat4 mvp = _projection * _view * model;
-				_baseProgram->setUniform("m", model);
-				_box->render(mvp);
-			}
-		glm::mat4 model = glm::translate(glm::vec3(0,0,0)) * 
-			glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0)) * 
-			glm::scale(glm::vec3(5.0f, 5.0f, 5.0f));
-		_baseProgram->setUniform("m", model);
-		_sphere->render(_projection * _view * model);
+			for (int i = 0; i < 9; i++)
+				_boxMatrix[y * 9 + i] = glm::translate(glm::vec3{(i % 3) * 4, y * 4, (i / 3) * 4}) * _baseBoxMatrix;
+		_box->uploadBufferArray("m", _boxMatrix);
+		_box->render(vp, 9 * 3);
+
+		_sphereMatrix = glm::translate(glm::vec3(0, 0, 0)) * glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0)) * glm::scale(glm::vec3(5.0, 5.0, 5.0));
+		_sphere->uploadBufferData("m", _sphereMatrix);
+		_sphere->render(vp);
 
 		// Render step 2 - Render to screen
 		_screen->bind();
@@ -125,6 +123,7 @@ int Engine::run() {
 		_deferred->getAttachments()[2].texture->bind(2);
 		_deferredProgram->setUniform("defPos", 0).setUniform("defNormal", 1).setUniform("defDiffuseSpecular", 2);
 
+		//_deferredPlane->uploadBufferArray("m", glm::mat4(1))); // Not needed
 		_deferredPlane->render(glm::mat4(1));
 
 		// Render step 3 - Render lightsources
@@ -135,14 +134,9 @@ int Engine::run() {
 		_screen->bind();
 
 		// Render step 3.2 - Render lightsources as cubes
-		_lightProgram->bind();
-		for (int i = 0; i < LIGHT_COUNT; i++) {
-			_lightProgram->setUniform("lightColor", _lightsColor[i]);
-			glm::mat4 model = glm::scale(glm::translate(_lightsPos[i]), glm::vec3(1.0/8.0)); // * _lightCube->getTranslation();
-			glm::mat4 mvp = _projection * _view * model;
-			_baseProgram->setUniform("m", model);
-			_lightCube->render(mvp);
-		}
+		_lightBulb->uploadBufferArray("m", _lightsMatrix);
+		//_lightBulb->uploadBufferArray("lightColor", _lightsColor);
+		_lightBulb->render(vp, _lightsMatrix.size(), GL_LINES);
 
 		fps++;
 		SDL_GL_SwapWindow(_window);
@@ -172,7 +166,7 @@ void Engine::_initGL() {
 	if (glewInit())
 		throw "Failed to init glew";
 
-	SDL_GL_SetSwapInterval(0);
+	SDL_GL_SetSwapInterval(1);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -189,14 +183,14 @@ void Engine::_initShaders() {
 		_baseProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.frag", ShaderType::fragment))
 			.finalize();
-		_baseProgram->addUniform("mvp").addUniform("m").addUniform("brickTex");
+		_baseProgram->addUniform("vp").addUniform("brickTex");
 	}
 	{
 		_deferredProgram = std::make_shared<ShaderProgram>();
 		_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.frag", ShaderType::fragment))
 			.finalize();
-		_deferredProgram->addUniform("mvp")
+		_deferredProgram->addUniform("vp")
 			.addUniform("defPos")
 			.addUniform("defNormal")
 			.addUniform("defDiffuseSpecular")
@@ -207,7 +201,59 @@ void Engine::_initShaders() {
 }
 
 void Engine::_initMeshes() {
-	{ _box = std::make_shared<Box>(_baseProgram); }
+	{
+		_brickTexture = std::make_shared<Texture>("assets/textures/brick.png");
+		_box = std::make_shared<Box>(_baseProgram);
+		_box
+			->addBuffer("m",
+									[](std::shared_ptr<ShaderProgram> program, GLuint id) {
+										GLint m = program->getAttribute("m");
+										if (m == -1)
+											return;
+
+										glBindBuffer(GL_ARRAY_BUFFER, id);
+										// GL_DYNAMIC_DRAW because the data will be changed alot
+										glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * 3 * 3 * 3, NULL, GL_DYNAMIC_DRAW);
+
+										// Hack below because glVertexAttribPointer can't handle mat4.
+										// Mat4 internally in the shader will be converted to a 4 vec4.
+										for (int i = 0; i < 4; i++) {
+											glEnableVertexAttribArray(m + i);
+											glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+											glVertexAttribDivisor(m + i, 1);
+										}
+
+										glBindBuffer(GL_ARRAY_BUFFER, 0);
+									})
+			.finalize();
+		_baseBoxMatrix = glm::mat4(1);
+		_boxMatrix.resize(3 * 3 * 3);
+	}
+	{
+		_sphere = std::make_shared<Mesh>(_baseProgram, "assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj");
+		_sphere
+			->addBuffer("m",
+									[](std::shared_ptr<ShaderProgram> program, GLuint id) {
+										GLint m = program->getAttribute("m");
+										if (m == -1)
+											return;
+										glm::mat4 mData = glm::mat4(1);
+
+										glBindBuffer(GL_ARRAY_BUFFER, id);
+										glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), glm::value_ptr(mData), GL_STATIC_DRAW); // Will only be uploaded once
+
+										for (int i = 0; i < 4; i++) {
+											glEnableVertexAttribArray(m + i);
+											glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+											glVertexAttribDivisor(m + i, 1);
+										}
+
+										glBindBuffer(GL_ARRAY_BUFFER, 0);
+									})
+			.finalize();
+
+		_sphereMatrix = glm::mat4(1);
+	}
 	{
 		std::vector<Vertex> verticies = {
 			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//
@@ -217,8 +263,27 @@ void Engine::_initMeshes() {
 		};
 		std::vector<GLuint> indicies = {0, 2, 1, 2, 0, 3};
 		_deferredPlane = std::make_shared<Mesh>(_deferredProgram, verticies, indicies);
-		_sphere = std::make_shared<Mesh>(_baseProgram, "assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj");
-		_brickTexture = std::make_shared<Texture>("assets/textures/brick.png");
+		_deferredPlane
+			->addBuffer("m",
+									[](std::shared_ptr<ShaderProgram> program, GLuint id) {
+										GLint m = program->getAttribute("m");
+										if (m == -1)
+											return;
+
+										glm::mat4 mData = glm::mat4(1);
+
+										glBindBuffer(GL_ARRAY_BUFFER, id);
+										glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), glm::value_ptr(mData), GL_STATIC_DRAW); // Will only be uploaded once
+
+										for (int i = 0; i < 4; i++) {
+											glEnableVertexAttribArray(m + i);
+											glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+											glVertexAttribDivisor(m + i, 1);
+										}
+
+										glBindBuffer(GL_ARRAY_BUFFER, 0);
+									})
+			.finalize();
 	}
 }
 
@@ -234,28 +299,71 @@ void Engine::_initFramebuffers() {
 }
 
 void Engine::_initLights() {
-	for (int i = 0; i < LIGHT_COUNT; i++)
-		_lightsPos[i] = glm::vec3{((i % 8) % 3) * 4, 2 + (i / 8) * 4, ((i % 8) / 3) * 4 - 2};
+	_lights.resize(LIGHT_COUNT);
 	for (int i = 0; i < LIGHT_COUNT; i++) {
+		_lights[i].pos = glm::vec3{((i % 8) % 3) * 4, 2 + (i / 8) * 4, ((i % 8) / 3) * 4 - 2};
 		float r = (i % 4) / 4.0;
 		float g = (i / 4) / 4.0;
 		float b = 1 - r - g;
 		if (b < 0)
 			b = 0;
 
-		_lightsColor[i] = glm::vec3{r, g, b};
+		_lights[i].color = glm::vec3{r, g, b};
 	}
 
-	_deferredProgram->bind().setUniform("lightsPos", _lightsPos, LIGHT_COUNT).setUniform("lightsColor", _lightsColor, LIGHT_COUNT);
+	_lightsBuffer = std::make_shared<UniformBuffer>(sizeof(Light) * LIGHT_COUNT);
+	_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);
+
+	_deferredProgram->bind().addUniformBuffer("Lights", _lightsBuffer, 0);
 
 	_lightProgram = std::make_shared<ShaderProgram>();
-	_lightProgram = std::make_shared<ShaderProgram>();
-	_lightProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
+	_lightProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/light.vert", ShaderType::vertex))
 		.attach(std::make_shared<ShaderUnit>("assets/shaders/light.frag", ShaderType::fragment))
 		.finalize();
-	_lightProgram->addUniform("mvp").addUniform("m").addUniform("lightColor");
+	_lightProgram->bind().addUniform("vp").addUniformBuffer("Lights", _lightsBuffer, 0);
 
-	_lightCube = std::make_shared<Box>(_lightProgram);
+	_lightsMatrix.resize(LIGHT_COUNT);
+	for (int i = 0; i < LIGHT_COUNT; i++)
+		_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(1));
+
+	_lightBulb = std::make_shared<Mesh>(_lightProgram, "assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj");
+
+	_lightBulb
+		->addBuffer("m",
+								[&](std::shared_ptr<ShaderProgram> program, GLuint id) {
+									GLint m = program->getAttribute("m");
+									if (m == -1)
+										return;
+									glBindBuffer(GL_ARRAY_BUFFER, id);
+									// GL_DYNAMIC_DRAW because the data will be changed alot
+									glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * LIGHT_COUNT, &_lightsMatrix[0], GL_DYNAMIC_DRAW);
+
+									// Hack below because glVertexAttribPointer can't handle mat4.
+									// Mat4 internally in the shader will be converted to a 4 vec4.
+									for (int i = 0; i < 4; i++) {
+										glEnableVertexAttribArray(m + i);
+										glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+										glVertexAttribDivisor(m + i, 1);
+									}
+
+									glBindBuffer(GL_ARRAY_BUFFER, 0);
+								})
+		/*.addBuffer("lightColor",
+							 [&](std::shared_ptr<ShaderProgram> program, GLuint id) {
+								 GLint lightColor = program->getAttribute("lightColor");
+								 if (lightColor == -1)
+									 return;
+
+								 glBindBuffer(GL_ARRAY_BUFFER, id);
+								 glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * LIGHT_COUNT, &_lightsColor[0], GL_DYNAMIC_DRAW);
+
+								 glEnableVertexAttribArray(lightColor);
+								 glVertexAttribPointer(lightColor, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (GLvoid*)0);
+								 glVertexAttribDivisor(lightColor, 1);
+
+								 glBindBuffer(GL_ARRAY_BUFFER, 0);
+							 })*/
+		.finalize();
 }
 
 void Engine::_resolutionChanged() { // TODO: don't call all the time

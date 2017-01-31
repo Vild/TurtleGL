@@ -1,13 +1,22 @@
-#version 330
+#version 330 core
 
 out vec4 outColor;
 
 in vec3 vColor;
 in vec2 vUV;
 
-const int LIGHT_COUNT = 16;
-uniform vec3 lightsPos[LIGHT_COUNT];
-uniform vec3 lightsColor[LIGHT_COUNT];
+struct Light {
+	vec3 pos;
+	float _p0;
+	vec3 color;
+	float _p1;
+};
+
+#define LIGHT_COUNT 16
+layout (std140) uniform Lights {
+	Light lights[LIGHT_COUNT];
+};
+
 uniform vec3 cameraPos;
 
 uniform sampler2D defPos;
@@ -27,8 +36,8 @@ void main() {
 
 	for (int i = 0; i < LIGHT_COUNT; i++) {
 		//lighting += (1.0/LIGHT_COUNT);
-		vec3 toLight = normalize(lightsPos[i] - pos);
-		vec3 lightColor = max(dot(normal, toLight), 0.0) * diffuse * lightsColor[i];
+		vec3 toLight = normalize(lights[i].pos- pos);
+		vec3 lightColor = max(dot(normal, toLight), 0.0) * diffuse * lights[i].color;
 		lighting += lightColor*(1.0/LIGHT_COUNT);
 	}
 

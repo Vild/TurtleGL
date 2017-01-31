@@ -43,8 +43,11 @@ private:
 	std::shared_ptr<ShaderProgram> _baseProgram; // The base shader for everything
 	std::shared_ptr<Texture> _brickTexture;
 	std::shared_ptr<Box> _box;
-	std::shared_ptr<Mesh> _sphere;
+	glm::mat4 _baseBoxMatrix;
+	std::vector<glm::mat4> _boxMatrix;
 
+	std::shared_ptr<Mesh> _sphere;
+	glm::mat4 _sphereMatrix;
 
 	// Deferred stuff
 	std::shared_ptr<ShaderProgram> _deferredProgram;
@@ -53,11 +56,21 @@ private:
 	std::shared_ptr<Framebuffer> _screen;
 	std::shared_ptr<Framebuffer> _deferred;
 
-	static const int LIGHT_COUNT = 16;
-	glm::vec3 _lightsPos[LIGHT_COUNT];
-	glm::vec3 _lightsColor[LIGHT_COUNT];
-	std::shared_ptr<Box> _lightCube;
 	std::shared_ptr<ShaderProgram> _lightProgram;
+
+	struct Light {
+		glm::vec3 pos;
+		float _p0;
+		glm::vec3 color;
+		float _p1;
+	};
+
+	static const int LIGHT_COUNT = 16;
+	std::vector<Light> _lights;
+	std::shared_ptr<UniformBuffer> _lightsBuffer;
+
+	std::shared_ptr<Mesh> _lightBulb;
+	std::vector<glm::mat4> _lightsMatrix;
 
 	void _initSDL();
 	void _initGL();

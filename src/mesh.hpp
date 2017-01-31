@@ -4,9 +4,12 @@
 #include <memory>
 #include <glm/glm.hpp>
 #include <vector>
+#include <map>
 #include <cstdint>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <functional>
+
 #include "shader.hpp"
 
 struct Vertex {
@@ -19,13 +22,39 @@ struct Vertex {
 class Mesh {
 public:
 	Mesh(std::shared_ptr<ShaderProgram> program, std::vector<Vertex> vertices, std::vector<GLuint> indices);
-	Mesh(std::shared_ptr<ShaderProgram> program, const std::string & file);
+	Mesh(std::shared_ptr<ShaderProgram> program, const std::string& file);
 	virtual ~Mesh();
 
-	void render(const glm::mat4& mvp);
+	Mesh& addBuffer(const std::string& name, std::function<void(std::shared_ptr<ShaderProgram>, GLuint)> bindHelper, GLenum type = GL_ARRAY_BUFFER);
 
-	glm::mat4& getTranslation() { return _translation; }
-	const glm::mat4& getTranslation() const { return _translation; }
+	void finalize();
+
+	void render(const glm::mat4& vp, size_t count = 1, GLenum drawMode = GL_TRIANGLES);
+
+	template <typename T>
+	Mesh& uploadBufferData(const std::string& name, const T& data) {
+		try {
+			GLuint id = _extraBuffers[name];
+			glBindBuffer(GL_ARRAY_BUFFER, id);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(T), glm::value_ptr(data));
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		} catch (std::exception e) {
+		}
+		return *this;
+	}
+
+	template <typename T>
+	Mesh& uploadBufferArray(const std::string& name, const std::vector<T>& data) {
+		try {
+			GLuint id = _extraBuffers[name];
+			glBindBuffer(GL_ARRAY_BUFFER, id);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, data.size() * sizeof(T), &data[0]);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		} catch (std::exception e) {
+		}
+		return *this;
+	}
+
 private:
 	std::shared_ptr<ShaderProgram> _program;
 	std::vector<Vertex> _vertices;
@@ -35,7 +64,9 @@ private:
 	GLuint _vbo;
 	GLuint _ibo;
 
-	glm::mat4 _translation; // for the mvp
+	std::map<std::string, GLuint> _extraBuffers;
+
+	static const int MAX_INSTANCE = 16;
 
 	void _makeBuffers();
 	void _loadObj(const std::string& fileName);

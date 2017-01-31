@@ -61,15 +61,30 @@ ShaderUnit::~ShaderUnit() {
 	glDeleteShader(_unit);
 }
 
+UniformBuffer::UniformBuffer(size_t size, GLenum dataMode) {
+	glGenBuffers(1, &_bufferID);
+	glBindBuffer(GL_UNIFORM_BUFFER, _bufferID);
+	glBufferData(GL_UNIFORM_BUFFER, size, NULL, dataMode);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+UniformBuffer::~UniformBuffer() {
+	glDeleteBuffers(1, &_bufferID);
+}
+
 ShaderProgram::ShaderProgram() {
 	_program = glCreateProgram();
 }
 
 ShaderProgram::~ShaderProgram() {
+	for (std::map<std::string, std::shared_ptr<UniformBuffer>>::iterator it = _uniformBuffer.begin(); it != _uniformBuffer.end(); ++it)
+		it->second.reset();
+
 	while (_units.size()) {
 		glDetachShader(_program, _units.back()->getUnit());
 		_units.pop_back();
 	}
+
 	glDeleteProgram(_program);
 }
 
@@ -107,50 +122,26 @@ ShaderProgram& ShaderProgram::addUniform(const std::string& name) {
 	return *this;
 }
 
+ShaderProgram& ShaderProgram::addUniformBuffer(const std::string& name, std::shared_ptr<UniformBuffer> buffer, GLuint bindingID) {
+	_uniformBuffer[name] = buffer;
+
+	GLint uniformBlockID = glGetUniformBlockIndex(_program, name.c_str());
+	glUniformBlockBinding(_program, uniformBlockID, bindingID);
+	glBindBufferBase(GL_UNIFORM_BUFFER, bindingID, buffer->getID());
+	return *this;
+}
+
 ShaderProgram& ShaderProgram::bind() {
 	glUseProgram(_program);
 	return *this;
 }
 
 GLint ShaderProgram::getAttribute(const std::string& name) const {
-	return glGetAttribLocation(_program, name.c_str());
-}
+	GLint loc = glGetAttribLocation(_program, name.c_str());
 
-ShaderProgram& ShaderProgram::setUniform(const std::string& name, const glm::vec3& value) {
-	try {
-		glUniform3fv(_uniform.at(name), 1, glm::value_ptr(value));
-	} catch (std::out_of_range& e) {
-		// std::cerr << "Uniform is missing! Did you forget to use that variable in that shader?: " << name << std::endl;
-		// throw ShaderProgramException(std::string("Uniform is missing! Did you forget to use that variable in that shader?: ") + name);
+	if (loc == -1) {
+		// throw ShaderProgramException(std::string("Uniform not found: %s") + name);
+		std::cerr << "Attribute not found: " << name << std::endl;
 	}
-	return *this;
-}
-ShaderProgram& ShaderProgram::setUniform(const std::string& name, const glm::vec3* values, GLuint count) {
-	try {
-		glUniform3fv(_uniform.at(name), count, glm::value_ptr(values[0]));
-	} catch (std::out_of_range& e) {
-		// std::cerr << "Uniform is missing! Did you forget to use that variable in that shader?: " << name << std::endl;
-		// throw ShaderProgramException(std::string("Uniform is missing! Did you forget to use that variable in that shader?: ") + name);
-	}
-	return *this;
-}
-
-ShaderProgram& ShaderProgram::setUniform(const std::string& name, const glm::mat4& value) {
-	try {
-		glUniformMatrix4fv(_uniform.at(name), 1, GL_FALSE, glm::value_ptr(value));
-	} catch (std::out_of_range& e) {
-		// std::cerr << "Uniform is missing! Did you forget to use that variable in that shader?: " << name << std::endl;
-		// throw ShaderProgramException(std::string("Uniform is missing! Did you forget to use that variable in that shader?: ") + name);
-	}
-	return *this;
-}
-
-ShaderProgram& ShaderProgram::setUniform(const std::string& name, int value) {
-	try {
-		glUniform1i(_uniform.at(name), value);
-	} catch (std::out_of_range& e) {
-		// std::cerr << "Uniform is missing! Did you forget to use that variable in that shader?: " << name << std::endl;
-		// throw ShaderProgramException(std::string("Uniform is missing! Did you forget to use that variable in that shader?: ") + name);
-	}
-	return *this;
+	return loc;
 }
