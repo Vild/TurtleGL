@@ -41,6 +41,11 @@ private:
 	SDL_GLContext _context;
 
 	std::shared_ptr<ShaderProgram> _baseProgram; // The base shader for everything
+	std::shared_ptr<ShaderProgram> _skyboxProgram;
+
+	std::shared_ptr<Texture> _skyboxTexture;
+	std::shared_ptr<Mesh> _skybox;
+
 	std::shared_ptr<Texture> _brickTexture;
 	std::shared_ptr<Box> _box;
 	glm::mat4 _baseBoxMatrix;

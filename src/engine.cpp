@@ -2,6 +2,7 @@
 
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_interpolation.hpp>
 
 Engine::Engine() {
 	_initSDL();
@@ -138,6 +139,17 @@ int Engine::run() {
 		//_lightBulb->uploadBufferArray("lightColor", _lightsColor);
 		_lightBulb->render(vp, _lightsMatrix.size(), GL_LINES);
 
+		_skyboxProgram->bind();
+		_skyboxTexture->bind(0);
+		_skyboxProgram->setUniform("skybox", 0);
+		{
+			glCullFace(GL_NONE);
+			glDepthFunc(GL_LEQUAL);
+			glm::mat4 skyboxVP = _projection * glm::extractMatrixRotation(_view); // Never move the skybox only rotate
+			_skybox->render(skyboxVP);
+			glCullFace(GL_BACK);
+		}
+
 		fps++;
 		SDL_GL_SwapWindow(_window);
 	}
@@ -186,6 +198,13 @@ void Engine::_initShaders() {
 		_baseProgram->addUniform("vp").addUniform("brickTex");
 	}
 	{
+		_skyboxProgram = std::make_shared<ShaderProgram>();
+		_skyboxProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/skybox.vert", ShaderType::vertex))
+			.attach(std::make_shared<ShaderUnit>("assets/shaders/skybox.frag", ShaderType::fragment))
+			.finalize();
+		_skyboxProgram->addUniform("vp").addUniform("skybox");
+	}
+	{
 		_deferredProgram = std::make_shared<ShaderProgram>();
 		_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.frag", ShaderType::fragment))
@@ -201,6 +220,30 @@ void Engine::_initShaders() {
 }
 
 void Engine::_initMeshes() {
+	{
+		_skyboxTexture = std::make_shared<Texture>("assets/textures/skybox.png");
+		_skybox = std::make_shared<Mesh>(_skyboxProgram, "assets/objects/skybox.obj");
+		_skybox
+			->addBuffer("m",
+									[](std::shared_ptr<ShaderProgram> program, GLuint id) {
+										GLint m = program->getAttribute("m");
+										if (m == -1)
+											return;
+										glm::mat4 mData = glm::scale(glm::vec3(1.0f));
+
+										glBindBuffer(GL_ARRAY_BUFFER, id);
+										glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), glm::value_ptr(mData), GL_STATIC_DRAW); // Will only be uploaded once
+
+										for (int i = 0; i < 4; i++) {
+											glEnableVertexAttribArray(m + i);
+											glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+											glVertexAttribDivisor(m + i, 1);
+										}
+
+										glBindBuffer(GL_ARRAY_BUFFER, 0);
+									})
+			.finalize();
+	}
 	{
 		_brickTexture = std::make_shared<Texture>("assets/textures/brick.png");
 		_box = std::make_shared<Box>(_baseProgram);
