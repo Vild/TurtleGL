@@ -8,6 +8,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "shader.hpp"
+#include "texture.hpp"
 
 struct Vertex {
 	glm::vec3 position;
@@ -15,6 +16,16 @@ struct Vertex {
 	glm::vec3 color;
 	glm::vec2 uv;
 };
+
+struct Material {
+	glm::vec3	kd;
+	glm::vec3	ka;
+	glm::vec3	tf;
+	float		ni;
+	glm::vec3	ks;
+	std::string	map_kd;
+};
+
 
 class Mesh {
 public:
@@ -31,6 +42,7 @@ private:
 	std::vector<Vertex> _vertices;
 	std::vector<GLuint> _indices;
 
+	std::vector<Material>		_materials;
 	GLuint _vao;
 	GLuint _vbo;
 	GLuint _ibo;

@@ -12,6 +12,7 @@ in vec2 vUV;
 
 uniform sampler2D brickTex;
 
+
 void main() {
 	defPos = vPos;
 	defNormal = vNormal;
