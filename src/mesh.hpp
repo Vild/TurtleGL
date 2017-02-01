@@ -11,7 +11,6 @@
 #include <functional>
 
 #include "shader.hpp"
-#include "texture.hpp"
 
 struct Vertex {
 	glm::vec3 position;
@@ -26,9 +25,8 @@ struct Material {
 	glm::vec3	tf;
 	float		ni;
 	glm::vec3	ks;
-	std::string	map_kd;
+	std::string map_Kd;
 };
-
 
 class Mesh {
 public:
@@ -67,11 +65,11 @@ public:
 	}
 
 private:
-	std::shared_ptr<ShaderProgram> _program;
-	std::vector<Vertex> _vertices;
-	std::vector<GLuint> _indices;
+	std::shared_ptr<ShaderProgram>	_program;
+	std::vector<Vertex>				_vertices;
+	std::vector<GLuint>				_indices;
+	std::vector<Material>			_materials;
 
-	std::vector<Material>		_materials;
 	GLuint _vao;
 	GLuint _vbo;
 	GLuint _ibo;

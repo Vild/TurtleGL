@@ -103,19 +103,6 @@ int Engine::run() {
 		_baseBoxMatrix *= glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0));
 
 		for (int y = 0; y < 3; y++)
-<<<<<<< HEAD
-			for (int i = 0; i < 3 * 3; i++) {
-				glm::mat4 model = glm::translate(glm::vec3{(i % 3) * 4, y * 4, (i / 3) * 4}) * _box->getTranslation();
-				glm::mat4 mvp = _projection * _view * model;
-				_baseProgram->setUniform("m", model);
-				_box->render(mvp);
-			}
-		glm::mat4 model = glm::translate(glm::vec3(-10,5,0)) * 
-			glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0)) * 
-			glm::scale(glm::vec3(5.0f, 5.0f, 5.0f));
-		_baseProgram->setUniform("m", model);
-		_sphere->render(_projection * _view * model);
-=======
 			for (int i = 0; i < 9; i++)
 				_boxMatrix[y * 9 + i] = glm::translate(glm::vec3{(i % 3) * 4, y * 4, (i / 3) * 4}) * _baseBoxMatrix;
 		_box->uploadBufferArray("m", _boxMatrix);
@@ -124,7 +111,6 @@ int Engine::run() {
 		_sphereMatrix = glm::translate(glm::vec3(0, 0, 0)) * glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0)) * glm::scale(glm::vec3(5.0, 5.0, 5.0));
 		_sphere->uploadBufferData("m", _sphereMatrix);
 		_sphere->render(vp);
->>>>>>> refs/remotes/origin/master
 
 		// Render step 2 - Render to screen
 		_screen->bind();
@@ -277,10 +263,6 @@ void Engine::_initMeshes() {
 		};
 		std::vector<GLuint> indicies = {0, 2, 1, 2, 0, 3};
 		_deferredPlane = std::make_shared<Mesh>(_deferredProgram, verticies, indicies);
-<<<<<<< HEAD
-		_sphere = std::make_shared<Mesh>(_baseProgram, "assets/objects/cube.obj");
-		_brickTexture = std::make_shared<Texture>("assets/textures/brick.png");
-=======
 		_deferredPlane
 			->addBuffer("m",
 									[](std::shared_ptr<ShaderProgram> program, GLuint id) {
@@ -302,7 +284,6 @@ void Engine::_initMeshes() {
 										glBindBuffer(GL_ARRAY_BUFFER, 0);
 									})
 			.finalize();
->>>>>>> refs/remotes/origin/master
 	}
 }
 
