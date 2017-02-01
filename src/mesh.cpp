@@ -15,22 +15,40 @@ Mesh::Mesh(std::shared_ptr<ShaderProgram> program, const std::string& file) : _p
 }
 
 Mesh::~Mesh() {
+	for (std::map<std::string, GLuint>::iterator it = _extraBuffers.begin(); it != _extraBuffers.end(); ++it) {
+		GLuint id = it->second;
+		glDeleteBuffers(1, &id);
+	}
+
 	GLuint buffers[2] = {_vbo, _ibo};
 	glDeleteBuffers(sizeof(buffers) / sizeof(*buffers), buffers);
 
 	glDeleteVertexArrays(1, &_vao);
 }
 
-void Mesh::render(const glm::mat4& mvp) {
+Mesh& Mesh::addBuffer(const std::string& name, std::function<void(std::shared_ptr<ShaderProgram>, GLuint)> bindHelper, GLenum type) {
+	glBindVertexArray(_vao);
+	_program->bind();
+
+	GLuint id;
+	glGenBuffers(1, &id);
+
+	_extraBuffers[name] = id;
+	bindHelper(_program, id);
+
+	return *this;
+}
+
+void Mesh::finalize() {
+	// TODO:
+}
+
+void Mesh::render(const glm::mat4& vp, size_t count, GLenum drawMode) {
 	_program->bind();
 	glBindVertexArray(_vao);
 
-	_program->setUniform("mvp", mvp);
-	try {
-		_program->setUniform("diffusePos", glm::vec3(0, 0, -2));
-	} catch (ShaderProgramException e) {
-	}
-	glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, NULL);
+	_program->setUniform("vp", vp);
+	glDrawElementsInstanced(drawMode, _indices.size(), GL_UNSIGNED_INT, NULL, count);
 }
 
 void Mesh::_makeBuffers() {
@@ -189,13 +207,21 @@ void Mesh::_uploadData() {
 	GLint vertColor = _program->getAttribute("vertColor");
 	GLint vertUV = _program->getAttribute("vertUV");
 
-	glEnableVertexAttribArray(vertPos);
-	glEnableVertexAttribArray(vertNormal);
-	glEnableVertexAttribArray(vertColor);
-	glEnableVertexAttribArray(vertUV);
+	if (vertPos != -1)
+		glEnableVertexAttribArray(vertPos);
+	if (vertNormal != -1)
+		glEnableVertexAttribArray(vertNormal);
+	if (vertColor != -1)
+		glEnableVertexAttribArray(vertColor);
+	if (vertUV != -1)
+		glEnableVertexAttribArray(vertUV);
 
-	glVertexAttribPointer(vertPos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
-	glVertexAttribPointer(vertNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, normal));
-	glVertexAttribPointer(vertColor, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, color));
-	glVertexAttribPointer(vertUV, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, uv));
+	if (vertPos != -1)
+		glVertexAttribPointer(vertPos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
+	if (vertNormal != -1)
+		glVertexAttribPointer(vertNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, normal));
+	if (vertColor != -1)
+		glVertexAttribPointer(vertColor, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, color));
+	if (vertUV != -1)
+		glVertexAttribPointer(vertUV, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, uv));
 }
