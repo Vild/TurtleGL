@@ -142,7 +142,6 @@ void Mesh::_loadObj(const std::string& fileName) {
 											printf("%s\n", map_Kd);
 											tmp_material.map_kd = map_Kd;
 											_materials.push_back(tmp_material);
-											textureCounter++;
 										}
 									}
 								}
