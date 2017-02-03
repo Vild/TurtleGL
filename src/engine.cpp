@@ -427,6 +427,7 @@ void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't ca
 		float mspeed = 0.005f;
 		_yaw += mspeed * x;
 		_pitch += mspeed * y;
+		_pitch = glm::clamp(_pitch, (float)-M_PI/2, (float)M_PI/2);
 	}
 	glm::vec3 forward(cos(_pitch) * sin(_yaw), sin(_pitch), cos(_pitch) * cos(_yaw));
 	glm::vec3 right(sin(_yaw - M_PI / 2.0f), 0, cos(_yaw - M_PI / 2.0f));
@@ -445,9 +446,9 @@ void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't ca
 		_position += right * delta * _speed;
 
 	if (state[SDL_SCANCODE_SPACE])
-		_position += up * delta * _speed;
+		_position += glm::vec3(0, 1, 0) * delta * _speed;
 	if (state[SDL_SCANCODE_LCTRL])
-		_position -= up * delta * _speed;
+		_position -= glm::vec3(0, 1, 0) * delta * _speed;
 
 	_view = glm::lookAt(_position, _position + forward, up);
 	_deferredProgram->bind().setUniform("cameraPos", _position);
