@@ -9,6 +9,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <functional>
+#include "texture.hpp"
 
 #include "shader.hpp"
 
@@ -17,6 +18,15 @@ struct Vertex {
 	glm::vec3 normal;
 	glm::vec3 color;
 	glm::vec2 uv;
+};
+
+struct Material {
+	glm::vec3	kd;
+	glm::vec3	ka;
+	glm::vec3	tf;
+	float		ni;
+	glm::vec3	ks;
+	std::shared_ptr<Texture> map_Kd;
 };
 
 class Mesh {
@@ -30,7 +40,7 @@ public:
 	void finalize();
 
 	void render(const glm::mat4& vp, size_t count = 1, GLenum drawMode = GL_TRIANGLES);
-
+	std::shared_ptr<Texture> getTexture() { return _material.map_Kd; };
 	template <typename T>
 	Mesh& uploadBufferData(const std::string& name, const T& data) {
 		try {
@@ -56,9 +66,10 @@ public:
 	}
 
 private:
-	std::shared_ptr<ShaderProgram> _program;
-	std::vector<Vertex> _vertices;
-	std::vector<GLuint> _indices;
+	std::shared_ptr<ShaderProgram>	_program;
+	std::vector<Vertex>				_vertices;
+	std::vector<GLuint>				_indices;
+	Material						_material;
 
 	GLuint _vao;
 	GLuint _vbo;
