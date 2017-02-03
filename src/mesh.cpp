@@ -100,51 +100,34 @@ void Mesh::_loadObj(const std::string& fileName) {
 					FILE* mtl_file = fopen(theFilename.c_str(), "r");
 					if (mtl_file == nullptr) {
 						printf("Unable to load file!\n");
-					}
-					else {
+					}else {
 						while (true) {
 							// Loads in another material for each usemtl call.
 							char comparison[80];
 							Material tmp_material;
 							errorCheck = fscanf(mtl_file, "%s", line);
 							if (errorCheck == EOF) {
-								_materials.push_back(tmp_material);
+								materials_Loaded = true;
 								break;
-							}
-							else {
+							}else {
 								if (strcmp(line, "newmtl") == 0)
 									fscanf(mtl_file, "%s\n", &comparison);
 								if (strcmp(comparison, material_Name) == 0) {
 									if (strcmp(line, "Kd") == 0) {
-										glm::vec3 kd;
-										fscanf(mtl_file, "%f %f %f\n", &kd.x, &kd.y, &kd.z);
-										tmp_material.kd = kd;
-									}
-									else if (strcmp(line, "Ka") == 0) {
-										glm::vec3 ka;
-										fscanf(mtl_file, "%f %f %f\n", &ka.x, &ka.y, &ka.z);
-										tmp_material.ka = ka;
-									}
-									else if (strcmp(line, "Tf") == 0) {
-										glm::vec3 tf;
-										fscanf(mtl_file, "%f %f %f\n", &tf.x, &tf.y, &tf.z);
-										tmp_material.tf = tf;
-									}
-									else if (strcmp(line, "Ni") == 0) {
-										float ni;
-										fscanf(mtl_file, "%f\n", &ni);
-										tmp_material.ni = ni;
-									}
-									else if (strcmp(line, "Ks") == 0) {
-										glm::vec3 ks;
-										fscanf(mtl_file, "%f %f %f\n", &ks.x, &ks.y, &ks.z);
-										tmp_material.ks = ks;
-									}
-									else if (strcmp(line, "map_Kd") == 0) {
-										char map_Kd[80];
-										fscanf(mtl_file, "%s\n", &map_Kd);
-										tmp_material.map_Kd = map_Kd;
-										_materials.push_back(tmp_material);
+										fscanf(mtl_file, "%f %f %f\n", &_material.kd.x, &_material.kd.y, &_material.kd.z);
+									}else if (strcmp(line, "Ka") == 0) {
+										fscanf(mtl_file, "%f %f %f\n", &_material.ka.x, &_material.ka.y, &_material.ka.z);
+									}else if (strcmp(line, "Tf") == 0) {
+										fscanf(mtl_file, "%f %f %f\n", &_material.tf.x, &_material.tf.y, &_material.tf.z);
+									}else if (strcmp(line, "Ni") == 0) {
+										fscanf(mtl_file, "%f\n", &_material.ni);
+									}else if (strcmp(line, "Ks") == 0) {
+										fscanf(mtl_file, "%f %f %f\n", &_material.ks.x, &_material.ks.y, &_material.ks.z);
+									}else if (strcmp(line, "map_Kd") == 0) {
+										char texture_fileName[80];
+										fscanf(mtl_file, "%s\n", &texture_fileName);
+										_material.map_Kd = std::make_shared<Texture>(texture_fileName);
+										break;
 									}
 								}
 							}
@@ -172,6 +155,8 @@ void Mesh::_loadObj(const std::string& fileName) {
 					nIndicies.push_back(normalIndex[0]);
 					nIndicies.push_back(normalIndex[1]);
 					nIndicies.push_back(normalIndex[2]);
+					printf("%d/%d/%d %d/%d/%d %d/%d/%d\n", vertexIndex[0], uvIndex[0], normalIndex[0], vertexIndex[1], uvIndex[1],
+						normalIndex[1], vertexIndex[2], uvIndex[2], normalIndex[2]);
 				}
 			}
 		}

@@ -108,7 +108,7 @@ int Engine::run() {
 		_box->uploadBufferArray("m", _boxMatrix);
 		_box->render(vp, 9 * 3);
 
-		_sphereMatrix = glm::translate(glm::vec3(0, 0, 0)) * glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0)) * glm::scale(glm::vec3(5.0, 5.0, 5.0));
+		_sphereMatrix = glm::translate(glm::vec3(0, 0, 0)) * glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0)) * glm::scale(glm::vec3(0.2f));
 		_sphere->uploadBufferData("m", _sphereMatrix);
 		_sphere->render(vp);
 
@@ -237,7 +237,7 @@ void Engine::_initMeshes() {
 										GLint m = program->getAttribute("m");
 										if (m == -1)
 											return;
-										glm::mat4 mData = glm::mat4(1);
+										glm::mat4 mData = glm::scale(glm::vec3(0.01f));
 
 										glBindBuffer(GL_ARRAY_BUFFER, id);
 										glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), glm::value_ptr(mData), GL_STATIC_DRAW); // Will only be uploaded once
@@ -326,7 +326,7 @@ void Engine::_initLights() {
 	for (int i = 0; i < LIGHT_COUNT; i++)
 		_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(1));
 
-	_lightBulb = std::make_shared<Mesh>(_lightProgram, "assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj");
+	_lightBulb = std::make_shared<Mesh>(_lightProgram, "assets/objects/cube.obj");
 
 	_lightBulb
 		->addBuffer("m",
