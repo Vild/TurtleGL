@@ -72,8 +72,7 @@ void Mesh::_loadObj(const std::string& fileName) {
 	FILE* file = fopen(fileName.c_str(), "r");
 	if (file == nullptr) {
 		printf("Unable to load file!\n");
-	}
-	else {
+	} else {
 		while (true) {
 			char line[256]; // Not sure how long a line can be in a .obj file.
 			int errorCheck = fscanf(file, "%s", line);
@@ -81,26 +80,26 @@ void Mesh::_loadObj(const std::string& fileName) {
 				break;
 			else {
 				if (strcmp(line, "mtllib") == 0) {
-					fscanf(file, "%s\n", &material_Filename);
-				}else if (strcmp(line, "v") == 0) {
+					fscanf(file, "%s\n", material_Filename);
+				} else if (strcmp(line, "v") == 0) {
 					glm::vec3 vertex;
 					fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
 					tmp_vertices.push_back(vertex);
-				}else if (strcmp(line, "vt") == 0) {
+				} else if (strcmp(line, "vt") == 0) {
 					glm::vec2 uv;
 					fscanf(file, "%f %f\n", &uv.x, &uv.y);
 					tmp_uvs.push_back(uv);
-				}else if (strcmp(line, "vn") == 0) {
+				} else if (strcmp(line, "vn") == 0) {
 					glm::vec3 normal;
 					fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
 					tmp_normal.push_back(normal);
-				}else if (strcmp(line, "usemtl") == 0 && !materials_Loaded) {
-					fscanf(file, "%s\n", &material_Name);
-					std::string theFilename = "assets/objects/" + (std::string)material_Filename;
+				} else if (strcmp(line, "usemtl") == 0 && !materials_Loaded) {
+					fscanf(file, "%s\n", material_Name);
+					std::string theFilename = std::string("assets/objects/") + material_Filename;
 					FILE* mtl_file = fopen(theFilename.c_str(), "r");
 					if (mtl_file == nullptr) {
 						printf("Unable to load file!\n");
-					}else {
+					} else {
 						while (true) {
 							// Loads in another material for each usemtl call.
 							char comparison[80];
@@ -109,23 +108,23 @@ void Mesh::_loadObj(const std::string& fileName) {
 							if (errorCheck == EOF) {
 								materials_Loaded = true;
 								break;
-							}else {
+							} else {
 								if (strcmp(line, "newmtl") == 0)
-									fscanf(mtl_file, "%s\n", &comparison);
+									fscanf(mtl_file, "%s\n", comparison);
 								if (strcmp(comparison, material_Name) == 0) {
 									if (strcmp(line, "Kd") == 0) {
 										fscanf(mtl_file, "%f %f %f\n", &_material.kd.x, &_material.kd.y, &_material.kd.z);
-									}else if (strcmp(line, "Ka") == 0) {
+									} else if (strcmp(line, "Ka") == 0) {
 										fscanf(mtl_file, "%f %f %f\n", &_material.ka.x, &_material.ka.y, &_material.ka.z);
-									}else if (strcmp(line, "Tf") == 0) {
+									} else if (strcmp(line, "Tf") == 0) {
 										fscanf(mtl_file, "%f %f %f\n", &_material.tf.x, &_material.tf.y, &_material.tf.z);
-									}else if (strcmp(line, "Ni") == 0) {
+									} else if (strcmp(line, "Ni") == 0) {
 										fscanf(mtl_file, "%f\n", &_material.ni);
-									}else if (strcmp(line, "Ks") == 0) {
+									} else if (strcmp(line, "Ks") == 0) {
 										fscanf(mtl_file, "%f %f %f\n", &_material.ks.x, &_material.ks.y, &_material.ks.z);
-									}else if (strcmp(line, "map_Kd") == 0) {
+									} else if (strcmp(line, "map_Kd") == 0) {
 										char texture_fileName[80];
-										fscanf(mtl_file, "%s\n", &texture_fileName);
+										fscanf(mtl_file, "%s\n", texture_fileName);
 										_material.map_Kd = std::make_shared<Texture>(texture_fileName);
 										break;
 									}
@@ -135,10 +134,10 @@ void Mesh::_loadObj(const std::string& fileName) {
 					}
 					materials_Loaded = true;
 					fclose(mtl_file);
-				}else if (strcmp(line, "f") == 0) {
+				} else if (strcmp(line, "f") == 0) {
 					unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
 					int worked = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1],
-						&normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
+															&normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
 					if (worked != 9) {
 						printf("File can't be read by this pleb loader lmao");
 						break;
@@ -155,8 +154,8 @@ void Mesh::_loadObj(const std::string& fileName) {
 					nIndicies.push_back(normalIndex[0]);
 					nIndicies.push_back(normalIndex[1]);
 					nIndicies.push_back(normalIndex[2]);
-					printf("%d/%d/%d %d/%d/%d %d/%d/%d\n", vertexIndex[0], uvIndex[0], normalIndex[0], vertexIndex[1], uvIndex[1],
-						normalIndex[1], vertexIndex[2], uvIndex[2], normalIndex[2]);
+					printf("%d/%d/%d %d/%d/%d %d/%d/%d\n", vertexIndex[0], uvIndex[0], normalIndex[0], vertexIndex[1], uvIndex[1], normalIndex[1], vertexIndex[2],
+								 uvIndex[2], normalIndex[2]);
 				}
 			}
 		}
