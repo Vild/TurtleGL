@@ -369,7 +369,7 @@ void Engine::_initLights() {
 	for (int i = 0; i < LIGHT_COUNT; i++)
 		_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(1));
 
-	_lightBulb = std::make_shared<Mesh>(_lightProgram, "assets/objects/cube.obj");
+	_lightBulb = std::make_shared<Mesh>(_lightProgram, "assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj");
 
 	_lightBulb
 		->addBuffer("m",
