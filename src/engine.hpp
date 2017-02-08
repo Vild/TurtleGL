@@ -7,10 +7,10 @@
 #include <memory>
 #include <cmath>
 
-#include "shader.hpp"
-#include "mesh.hpp"
-#include "framebuffer.hpp"
-#include "texture.hpp"
+#include "gl/shader.hpp"
+#include "gl/mesh.hpp"
+#include "gl/framebuffer.hpp"
+#include "gl/texture.hpp"
 #include "entity/box.hpp"
 
 class Engine {

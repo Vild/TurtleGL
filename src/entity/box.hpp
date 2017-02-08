@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "../mesh.hpp"
-#include "../shader.hpp"
+#include "../gl/mesh.hpp"
+#include "../gl/shader.hpp"
 
 class Box : public Mesh {
 public:
