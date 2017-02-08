@@ -7,7 +7,6 @@
 #include <memory>
 #include <cmath>
 
-#include "scopeexit.hpp"
 #include "shader.hpp"
 #include "mesh.hpp"
 #include "framebuffer.hpp"

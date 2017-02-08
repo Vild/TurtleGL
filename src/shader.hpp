@@ -10,8 +10,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "scopeexit.hpp"
-
 enum class ShaderType {
 	vertex = GL_VERTEX_SHADER,		 //
 	fragment = GL_FRAGMENT_SHADER, //

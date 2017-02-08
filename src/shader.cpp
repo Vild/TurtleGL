@@ -6,7 +6,6 @@ ShaderUnit::ShaderUnit(const std::string& file, ShaderType type) {
 	FILE* fp = fopen(file.c_str(), "rb");
 	if (!fp)
 		throw ShaderUnitException("File not found!");
-	SCOPE_EXIT(fclose(fp););
 
 	fseek(fp, 0, SEEK_END);
 	long size = ftell(fp);
@@ -14,14 +13,15 @@ ShaderUnit::ShaderUnit(const std::string& file, ShaderType type) {
 	fseek(fp, 0, SEEK_SET);
 
 	char* str = (char*)malloc(size + 1);
-	SCOPE_EXIT(free(str));
 	str[size] = '\0';
 
 	fread(str, size, 1, fp);
+	fclose(fp);
 
 	_unit = glCreateShader((GLenum)type);
 	glShaderSource(_unit, 1, &str, NULL);
 	glCompileShader(_unit);
+	free(str);
 
 	GLint status;
 	glGetShaderiv(_unit, GL_COMPILE_STATUS, &status);
