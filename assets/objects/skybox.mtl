@@ -1,0 +1,7 @@
+# Handmade mtl
+# Material Count: 1
+
+newmtl Skybox
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+map_Kd assets/textures/skybox.png

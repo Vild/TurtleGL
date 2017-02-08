@@ -140,8 +140,13 @@ int Engine::run() {
 		_lightBulb->render(vp, _lightsMatrix.size(), GL_LINES);
 
 		_skyboxProgram->bind();
-		_skyboxTexture->bind(0);
-		_skyboxProgram->setUniform("skybox", 0);
+		{
+			auto kd = _skybox->getMaterial().map_Kd;
+			if (kd){
+				_skybox->getMaterial().map_Kd->bind(0);
+				_skyboxProgram->setUniform("diffuseTexture", 0);
+			}
+		}
 		{
 			glCullFace(GL_NONE);
 			glDepthFunc(GL_LEQUAL);
@@ -195,14 +200,14 @@ void Engine::_initShaders() {
 		_baseProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.frag", ShaderType::fragment))
 			.finalize();
-		_baseProgram->addUniform("vp").addUniform("brickTex");
+		_baseProgram->addUniform("vp").addUniform("diffuseTexture");
 	}
 	{
 		_skyboxProgram = std::make_shared<ShaderProgram>();
 		_skyboxProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/skybox.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/skybox.frag", ShaderType::fragment))
 			.finalize();
-		_skyboxProgram->addUniform("vp").addUniform("skybox");
+		_skyboxProgram->addUniform("vp").addUniform("diffuseTexture");
 	}
 	{
 		_deferredProgram = std::make_shared<ShaderProgram>();
@@ -221,7 +226,6 @@ void Engine::_initShaders() {
 
 void Engine::_initMeshes() {
 	{
-		_skyboxTexture = std::make_shared<Texture>("assets/textures/skybox.png");
 		_skybox = std::make_shared<Mesh>(_skyboxProgram, "assets/objects/skybox.obj");
 		_skybox
 			->addBuffer("m",

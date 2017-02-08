@@ -4,8 +4,8 @@ out vec4 outColor;
 
 in vec2 vUV;
 
-uniform sampler2D skybox;
+uniform sampler2D diffuseTexture;
 
 void main() {
-	outColor = texture(skybox, vUV);
+	outColor = texture(diffuseTexture, vUV);
 }

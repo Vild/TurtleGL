@@ -10,11 +10,11 @@ in vec3 vNormal;
 in vec3 vColor;
 in vec2 vUV;
 
-uniform sampler2D brickTex;
+uniform sampler2D diffuseTexture;
 
 void main() {
 	defPos = vPos;
 	defNormal = vNormal;
-	defDiffuseSpecular.rgb = vColor * texture(brickTex, vUV).rgb;
+	defDiffuseSpecular.rgb = vColor * texture(diffuseTexture, vUV).rgb;
 	defDiffuseSpecular.a = 0.25;
 }

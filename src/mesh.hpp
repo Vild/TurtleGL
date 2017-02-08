@@ -40,7 +40,8 @@ public:
 	void finalize();
 
 	void render(const glm::mat4& vp, size_t count = 1, GLenum drawMode = GL_TRIANGLES);
-	std::shared_ptr<Texture> getTexture() { return _material.map_Kd; };
+	Material& getMaterial() { return _material; };
+
 	template <typename T>
 	Mesh& uploadBufferData(const std::string& name, const T& data) {
 		try {

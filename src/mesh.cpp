@@ -154,8 +154,8 @@ void Mesh::_loadObj(const std::string& fileName) {
 					nIndicies.push_back(normalIndex[0]);
 					nIndicies.push_back(normalIndex[1]);
 					nIndicies.push_back(normalIndex[2]);
-					printf("%d/%d/%d %d/%d/%d %d/%d/%d\n", vertexIndex[0], uvIndex[0], normalIndex[0], vertexIndex[1], uvIndex[1], normalIndex[1], vertexIndex[2],
-								 uvIndex[2], normalIndex[2]);
+					//printf("%d/%d/%d %d/%d/%d %d/%d/%d\n", vertexIndex[0], uvIndex[0], normalIndex[0], vertexIndex[1], uvIndex[1], normalIndex[1], vertexIndex[2],
+					//			 uvIndex[2], normalIndex[2]);
 				}
 			}
 		}

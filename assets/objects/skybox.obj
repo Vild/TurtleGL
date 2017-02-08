@@ -1,6 +1,7 @@
 # Handmade by Dan because stupid
 
 mtllib skybox.mtl
+usemtl Skybox
 v -1.000000 1.000000 1.000000
 v -1.000000 1.000000 -1.000000
 v -1.000000 -1.000000 1.000000
