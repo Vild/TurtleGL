@@ -142,7 +142,7 @@ int Engine::run() {
 		_skyboxProgram->bind();
 		{
 			auto kd = _skybox->getMaterial().map_Kd;
-			if (kd){
+			if (kd) {
 				_skybox->getMaterial().map_Kd->bind(0);
 				_skyboxProgram->setUniform("diffuseTexture", 0);
 			}
@@ -183,7 +183,7 @@ void Engine::_initGL() {
 	if (glewInit())
 		throw "Failed to init glew";
 
-	SDL_GL_SetSwapInterval(1);
+	SDL_GL_SetSwapInterval(_vsync);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -431,7 +431,7 @@ void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't ca
 		float mspeed = 0.005f;
 		_yaw += mspeed * x;
 		_pitch += mspeed * y;
-		_pitch = glm::clamp(_pitch, (float)-M_PI/2, (float)M_PI/2);
+		_pitch = glm::clamp(_pitch, (float)-M_PI / 2, (float)M_PI / 2);
 	}
 	glm::vec3 forward(cos(_pitch) * sin(_yaw), sin(_pitch), cos(_pitch) * cos(_yaw));
 	glm::vec3 right(sin(_yaw - M_PI / 2.0f), 0, cos(_yaw - M_PI / 2.0f));

@@ -23,6 +23,7 @@ public:
 private:
 	uint32_t _width = 1280;
 	uint32_t _height = 720;
+	bool _vsync = false;
 
 	float _speed = 5.0f;
 	float _fov = 80.0f;
