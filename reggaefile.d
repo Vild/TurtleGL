@@ -2,7 +2,7 @@ import reggae;
 
 enum CompileCommand {
 	Compile = "g++ -c -std=c++11 -O0 -ggdb -Wall -fdiagnostics-color=always $in -o $out",
-	Link = "g++ -std=c++11 -O3 -ggdb -Wall -fdiagnostics-color=always -lSDL2 -lSDL2_image -lGL -lGLEW $in -o $out",
+	Link = "g++ -std=c++11 -O3 -ggdb -Wall -fdiagnostics-color=always -lSDL2 -lSDL2_image -lGL -lGLEW -lassimp $in -o $out",
 }
 
 Target[] MakeObjects(string[] files) {

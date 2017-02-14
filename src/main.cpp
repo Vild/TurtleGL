@@ -3,7 +3,7 @@
 
 int main(int argc, char** argv) {
 	try {
-		return Engine().run();
+		return Engine::getInstance().run();
 	} catch (std::exception& e) {
 		fprintf(stderr, "%s\n", e.what());
 		return -1;

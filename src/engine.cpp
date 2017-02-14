@@ -3,15 +3,11 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_interpolation.hpp>
+#include <cmath>
 
-Engine::Engine() {
-	_initSDL();
-	_initGL();
-	_initShaders();
-	_initMeshes();
-	_initFramebuffers();
-	_initLights();
-}
+#include "entity/box.hpp"
+#include "entity/sphere.hpp"
+#include "entity/duck.hpp"
 
 Engine::~Engine() {
 	IMG_Quit();
@@ -22,6 +18,7 @@ Engine::~Engine() {
 }
 
 int Engine::run() {
+	_init();
 	_quit = false;
 	int fps = 0;
 	uint32_t lastTime = SDL_GetTicks();
@@ -99,19 +96,12 @@ int Engine::run() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		_baseProgram->bind();
-		_brickTexture->bind(0);
-		_baseProgram->setUniform("brickTex", 0);
-		_baseBoxMatrix *= glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0));
+		for (std::shared_ptr<Entity> entity : _entities)
+			entity->update(delta);
 
-		for (int y = 0; y < 3; y++)
-			for (int i = 0; i < 9; i++)
-				_boxMatrix[y * 9 + i] = glm::translate(glm::vec3{(i % 3) * 4, y * 4, (i / 3) * 4}) * _baseBoxMatrix;
-		_box->uploadBufferArray("m", _boxMatrix);
-		_box->render(vp, 9 * 3);
-
-		_sphereMatrix = glm::translate(glm::vec3(0, 0, 0)) * glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0)) * glm::scale(glm::vec3(0.2f));
-		_sphere->uploadBufferData("m", _sphereMatrix);
-		_sphere->render(vp);
+		_baseProgram->setUniform("vp", vp);
+		for (std::shared_ptr<Entity> entity : _entities)
+			entity->render();
 
 		// Render step 2 - Render to screen
 		_screen->bind();
@@ -125,7 +115,8 @@ int Engine::run() {
 		_deferredProgram->setUniform("defPos", 0).setUniform("defNormal", 1).setUniform("defDiffuseSpecular", 2);
 
 		//_deferredPlane->uploadBufferArray("m", glm::mat4(1))); // Not needed
-		_deferredPlane->render(glm::mat4(1));
+		_deferredProgram->setUniform("vp", glm::mat4(1));
+		_deferredPlane->render();
 
 		// Render step 3 - Render lightsources
 		// Render step 3.1 - Move deferred depth buffer to screen
@@ -135,9 +126,11 @@ int Engine::run() {
 		_screen->bind();
 
 		// Render step 3.2 - Render lightsources as cubes
+		_lightProgram->bind();
 		_lightBulb->uploadBufferArray("m", _lightsMatrix);
 		//_lightBulb->uploadBufferArray("lightColor", _lightsColor);
-		_lightBulb->render(vp, _lightsMatrix.size(), GL_LINES);
+		_lightProgram->setUniform("vp", vp);
+		_lightBulb->render(_lightsMatrix.size(), GL_LINES);
 
 		_skyboxProgram->bind();
 		{
@@ -151,7 +144,8 @@ int Engine::run() {
 			glCullFace(GL_NONE);
 			glDepthFunc(GL_LEQUAL);
 			glm::mat4 skyboxVP = _projection * glm::extractMatrixRotation(_view); // Never move the skybox only rotate
-			_skybox->render(skyboxVP);
+			_skyboxProgram->setUniform("vp", skyboxVP);
+			_skybox->render();
 			glCullFace(GL_BACK);
 		}
 
@@ -159,6 +153,20 @@ int Engine::run() {
 		SDL_GL_SwapWindow(_window);
 	}
 	return 0;
+}
+
+std::shared_ptr<TextureManager> Engine::getTextureManager() {
+	return _textureManager;
+}
+
+void Engine::_init() {
+	_initSDL();
+	_initGL();
+	_textureManager = std::make_shared<TextureManager>(); // TODO: Move to own function?
+	_initShaders();
+	_initMeshes();
+	_initFramebuffers();
+	_initLights();
 }
 
 void Engine::_initSDL() {
@@ -200,26 +208,25 @@ void Engine::_initShaders() {
 		_baseProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.frag", ShaderType::fragment))
 			.finalize();
-		_baseProgram->addUniform("vp").addUniform("diffuseTexture");
+		_baseProgram->bind().addUniform("vp").addUniform("diffuseTexture");
+		_baseProgram->setUniform("diffuseTexture", 0);
 	}
 	{
 		_skyboxProgram = std::make_shared<ShaderProgram>();
 		_skyboxProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/skybox.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/skybox.frag", ShaderType::fragment))
 			.finalize();
-		_skyboxProgram->addUniform("vp").addUniform("diffuseTexture");
+		_skyboxProgram->bind().addUniform("vp").addUniform("diffuseTexture");
 	}
 	{
 		_deferredProgram = std::make_shared<ShaderProgram>();
 		_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.frag", ShaderType::fragment))
 			.finalize();
-		_deferredProgram->addUniform("vp")
+		_deferredProgram->bind().addUniform("vp")
 			.addUniform("defPos")
 			.addUniform("defNormal")
 			.addUniform("defDiffuseSpecular")
-			.addUniform("lightsPos")
-			.addUniform("lightsColor")
 			.addUniform("cameraPos");
 	}
 }
@@ -248,59 +255,9 @@ void Engine::_initMeshes() {
 									})
 			.finalize();
 	}
-	{
-		_brickTexture = std::make_shared<Texture>("assets/textures/brick.png");
-		_box = std::make_shared<Box>(_baseProgram);
-		_box
-			->addBuffer("m",
-									[](std::shared_ptr<ShaderProgram> program, GLuint id) {
-										GLint m = program->getAttribute("m");
-										if (m == -1)
-											return;
-
-										glBindBuffer(GL_ARRAY_BUFFER, id);
-										// GL_DYNAMIC_DRAW because the data will be changed alot
-										glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * 3 * 3 * 3, NULL, GL_DYNAMIC_DRAW);
-
-										// Hack below because glVertexAttribPointer can't handle mat4.
-										// Mat4 internally in the shader will be converted to a 4 vec4.
-										for (int i = 0; i < 4; i++) {
-											glEnableVertexAttribArray(m + i);
-											glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
-											glVertexAttribDivisor(m + i, 1);
-										}
-
-										glBindBuffer(GL_ARRAY_BUFFER, 0);
-									})
-			.finalize();
-		_baseBoxMatrix = glm::mat4(1);
-		_boxMatrix.resize(3 * 3 * 3);
-	}
-	{
-		_sphere = std::make_shared<Mesh>(_baseProgram, "assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj");
-		_sphere
-			->addBuffer("m",
-									[](std::shared_ptr<ShaderProgram> program, GLuint id) {
-										GLint m = program->getAttribute("m");
-										if (m == -1)
-											return;
-										glm::mat4 mData = glm::scale(glm::vec3(0.01f));
-
-										glBindBuffer(GL_ARRAY_BUFFER, id);
-										glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), glm::value_ptr(mData), GL_STATIC_DRAW); // Will only be uploaded once
-
-										for (int i = 0; i < 4; i++) {
-											glEnableVertexAttribArray(m + i);
-											glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
-											glVertexAttribDivisor(m + i, 1);
-										}
-
-										glBindBuffer(GL_ARRAY_BUFFER, 0);
-									})
-			.finalize();
-
-		_sphereMatrix = glm::mat4(1);
-	}
+	_entities.push_back(std::make_shared<Box>(_baseProgram));
+	_entities.push_back(std::make_shared<Sphere>(_baseProgram));
+	_entities.push_back(std::make_shared<Duck>(_baseProgram));
 	{
 		std::vector<Vertex> verticies = {
 			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//
@@ -348,7 +305,7 @@ void Engine::_initFramebuffers() {
 void Engine::_initLights() {
 	_lights.resize(LIGHT_COUNT);
 	for (int i = 0; i < LIGHT_COUNT; i++) {
-		_lights[i].pos = glm::vec3{((i % 8) % 3) * 4, 2 + (i / 8) * 4, ((i % 8) / 3) * 4 - 2};
+		_lights[i].pos = glm::vec3{((i % 8) % 3) * 6 - 2, 2 + (i / 8) * 4, ((i % 8) / 3) * 6 - 2};
 		float r = (i % 4) / 4.0;
 		float g = (i / 4) / 4.0;
 		float b = 1 - r - g;
@@ -356,22 +313,30 @@ void Engine::_initLights() {
 			b = 0;
 
 		_lights[i].color = glm::vec3{r, g, b};
+
+
+// https://learnopengl.com/#!Advanced-Lighting/Deferred-Shading
+		GLfloat constant = 1.0;
+		_lights[i].linear = 0.7;
+		_lights[i].quadratic = 1.8;
+		GLfloat lightMax = fmaxf(fmaxf(_lights[i].color.r, _lights[i].color.g), _lights[i].color.b);
+		_lights[i].radius = (-_lights[i].linear + sqrtf(_lights[i].linear * _lights[i].linear - 4 * _lights[i].quadratic * (constant - (256.0 / 5.0) * lightMax))) / (2 * _lights[i].quadratic);
 	}
 
 	_lightsBuffer = std::make_shared<UniformBuffer>(sizeof(Light) * LIGHT_COUNT);
 	_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);
 
-	_deferredProgram->bind().addUniformBuffer("Lights", _lightsBuffer, 0);
+	_deferredProgram->bind().addUniformBuffer("Lights", _lightsBuffer, 8);
 
 	_lightProgram = std::make_shared<ShaderProgram>();
 	_lightProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/light.vert", ShaderType::vertex))
 		.attach(std::make_shared<ShaderUnit>("assets/shaders/light.frag", ShaderType::fragment))
 		.finalize();
-	_lightProgram->bind().addUniform("vp").addUniformBuffer("Lights", _lightsBuffer, 0);
+	_lightProgram->bind().addUniform("vp").addUniformBuffer("Lights", _lightsBuffer, 8);
 
 	_lightsMatrix.resize(LIGHT_COUNT);
 	for (int i = 0; i < LIGHT_COUNT; i++)
-		_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(1));
+		_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(_lights[i].radius / 2.0));
 
 	_lightBulb = std::make_shared<Mesh>(_lightProgram, "assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj");
 

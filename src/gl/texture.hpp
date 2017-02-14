@@ -9,6 +9,8 @@ class Texture {
 public:
 	Texture(const std::string& texture);
 	Texture(GLuint texture);
+	Texture(unsigned int width, unsigned int height, const void* data);
+	Texture(const char imageFormat[4], const void* data, unsigned int size);
 	virtual ~Texture();
 
 	void bind(int slot);
@@ -17,4 +19,6 @@ public:
 
 private:
 	GLuint _texture;
+
+	void _setData(GLenum format, GLuint w, GLuint h, const void* pixels);
 };

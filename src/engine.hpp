@@ -11,14 +11,22 @@
 #include "gl/mesh.hpp"
 #include "gl/framebuffer.hpp"
 #include "gl/texture.hpp"
-#include "entity/box.hpp"
+#include "io/texturemanager.hpp"
+#include "entity/entity.hpp"
 
 class Engine {
 public:
-	Engine();
-	virtual ~Engine();
+	static Engine& getInstance() {
+		static Engine instance;
+		return instance;
+	}
+
+	Engine(Engine const&) = delete;
+	void operator=(Engine const&) = delete;
 
 	int run();
+
+	std::shared_ptr<TextureManager> getTextureManager();
 
 private:
 	uint32_t _width = 1280;
@@ -40,18 +48,14 @@ private:
 	SDL_Window* _window;
 	SDL_GLContext _context;
 
-	std::shared_ptr<ShaderProgram> _baseProgram; // The base shader for everything
-	std::shared_ptr<ShaderProgram> _skyboxProgram;
+	std::shared_ptr<TextureManager> _textureManager;
+
+	std::shared_ptr<ShaderProgram> _baseProgram;	 // The base shader for everything
+	std::shared_ptr<ShaderProgram> _skyboxProgram; // Skybox program
 
 	std::shared_ptr<Mesh> _skybox;
 
-	std::shared_ptr<Texture> _brickTexture;
-	std::shared_ptr<Mesh> _box;
-	glm::mat4 _baseBoxMatrix;
-	std::vector<glm::mat4> _boxMatrix;
-
-	std::shared_ptr<Mesh> _sphere;
-	glm::mat4 _sphereMatrix;
+	std::vector<std::shared_ptr<Entity>> _entities;
 
 	// Deferred stuff
 	std::shared_ptr<ShaderProgram> _deferredProgram;
@@ -64,9 +68,12 @@ private:
 
 	struct Light {
 		glm::vec3 pos;
-		float _p0;
+		float radius;
 		glm::vec3 color;
-		float _p1;
+		float linear;
+		float quadratic;
+
+		Light() : pos(glm::vec3(0)), radius(0), color(glm::vec3(0)), linear(0), quadratic(0) {}
 	};
 
 	static const int LIGHT_COUNT = 16;
@@ -76,6 +83,10 @@ private:
 	std::shared_ptr<Mesh> _lightBulb;
 	std::vector<glm::mat4> _lightsMatrix;
 
+	Engine() {}
+	virtual ~Engine();
+
+	void _init();
 	void _initSDL();
 	void _initGL();
 	void _initShaders();

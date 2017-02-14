@@ -5,40 +5,38 @@
 #include <glm/glm.hpp>
 #include <cstdint>
 
-// TODO: Remove this hack when .obj loading is implemented
-static std::vector<glm::vec3> verts = {
-	glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{-1.0f, -1.0f, 1.0f},	glm::vec3{-1.0f, 1.0f, 1.0f},		glm::vec3{1.0f, 1.0f, -1.0f},	glm::vec3{-1.0f, -1.0f, -1.0f},
-	glm::vec3{-1.0f, 1.0f, -1.0f},	glm::vec3{1.0f, -1.0f, 1.0f},		glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{1.0f, -1.0f, -1.0f}, glm::vec3{1.0f, 1.0f, -1.0f},
-	glm::vec3{1.0f, -1.0f, -1.0f},	glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{-1.0f, 1.0f, 1.0f},	glm::vec3{-1.0f, 1.0f, -1.0f},
-	glm::vec3{1.0f, -1.0f, 1.0f},		glm::vec3{-1.0f, -1.0f, 1.0f},	glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{-1.0f, 1.0f, 1.0f},	glm::vec3{-1.0f, -1.0f, 1.0f},
-	glm::vec3{1.0f, -1.0f, 1.0f},		glm::vec3{1.0f, 1.0f, 1.0f},		glm::vec3{1.0f, -1.0f, -1.0f},	glm::vec3{1.0f, 1.0f, -1.0f},	glm::vec3{1.0f, -1.0f, -1.0f},
-	glm::vec3{1.0f, 1.0f, 1.0f},		glm::vec3{1.0f, -1.0f, 1.0f},		glm::vec3{1.0f, 1.0f, 1.0f},		glm::vec3{1.0f, 1.0f, -1.0f},	glm::vec3{-1.0f, 1.0f, -1.0f},
-	glm::vec3{1.0f, 1.0f, 1.0f},		glm::vec3{-1.0f, 1.0f, -1.0f},	glm::vec3{-1.0f, 1.0f, 1.0f},		glm::vec3{1.0f, 1.0f, 1.0f},	 glm::vec3{-1.0f, 1.0f, 1.0f},
-	glm::vec3{1.0f, -1.0f, 1.0}};
+Box::Box(std::shared_ptr<ShaderProgram> program) : AssimpEntity(program, "assets/objects/duck.fbx"), _baseMatrix(glm::scale(glm::vec3(0.01f))) {
+	_drawCount = 27;
+	_mesh
+		->addBuffer("m",
+								[&](std::shared_ptr<ShaderProgram> program, GLuint id) {
+									GLint m = program->getAttribute("m");
+									if (m == -1)
+										return;
+									glBindBuffer(GL_ARRAY_BUFFER, id);
+									glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * _drawCount, NULL, GL_STATIC_DRAW); // Will only be uploaded once
 
-static std::vector<Vertex> getVertices() {
-	std::vector<Vertex> l;
-	for (size_t i = 0; i < verts.size(); i += 3) {
-		glm::vec3 e0 = verts[i + 1] - verts[i + 0];
-		glm::vec3 e1 = verts[i + 2] - verts[i + 0];
+									for (int i = 0; i < 4; i++) {
+										glEnableVertexAttribArray(m + i);
+										glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+										glVertexAttribDivisor(m + i, 1);
+									}
 
-		glm::vec3 n = cross(e0, e1);
-
-		l.push_back(Vertex{verts[i], n, {1.0, 1.0, 1.0}, {0, 0}});
-		l.push_back(Vertex{verts[i + 1], n, {1.0, 1.0, 1.0}, {0, 1}});
-		l.push_back(Vertex{verts[i + 2], n, {1.0, 1.0, 1.0}, {1, 0}});
-	}
-
-	return l;
-}
-static std::vector<GLuint> getIndicies() {
-	std::vector<GLuint> l;
-	for (size_t i = 0; i < verts.size(); i += 3) {
-		l.push_back(i + 0);
-		l.push_back(i + 1);
-		l.push_back(i + 2);
-	}
-	return l;
+									glBindBuffer(GL_ARRAY_BUFFER, 0);
+								})
+		.finalize();
+	_matrices.resize(_drawCount);
 }
 
-Box::Box(std::shared_ptr<ShaderProgram> program) : Mesh(program, getVertices(), getIndicies()) {}
+void Box::update(float delta) {
+	static float timeCounter = 0;
+	timeCounter += delta;
+	_baseMatrix *= glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0));
+
+	glm::mat4 movement = glm::translate(glm::vec3(sin(timeCounter) * 4, 0, sin(timeCounter) * 4 - cos(timeCounter) * 4));
+
+	for (int y = 0; y < 3; y++)
+		for (int i = 0; i < 9; i++)
+			_matrices[y * 9 + i] = (movement * glm::translate(glm::vec3{(i % 3) * 4, y * 4, (i / 3) * 4})) * _baseMatrix;
+	_mesh->uploadBufferArray("m", _matrices);
+}

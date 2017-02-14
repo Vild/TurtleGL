@@ -54,37 +54,22 @@ public:
 
 	template <typename T>
 	void setData(const T& value) {
-		try {
-			glBindBuffer(GL_UNIFORM_BUFFER, _bufferID);
-			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T), &value);
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		} catch (std::out_of_range& e) {
-			// std::cerr << "Uniform buffer is missing! Did you forget to use that variable in that shader?: " << name << std::endl;
-			// throw ShaderProgramException(std::string("Uniform buffer is missing! Did you forget to use that variable in that shader?: ") + name);
-		}
+		glBindBuffer(GL_UNIFORM_BUFFER, _bufferID);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T), &value);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 
 	template <typename T>
 	void setDataArray(const std::vector<T>& values) {
-		try {
-			glBindBuffer(GL_UNIFORM_BUFFER, _bufferID);
-			glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T) * values.size(), &values[0]);
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		} catch (std::out_of_range& e) {
-			// std::cerr << "Uniform buffer is missing! Did you forget to use that variable in that shader?: " << name << std::endl;
-			// throw ShaderProgramException(std::string("Uniform buffer is missing! Did you forget to use that variable in that shader?: ") + name);
-		}
+		glBindBuffer(GL_UNIFORM_BUFFER, _bufferID);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(T) * values.size(), &values[0]);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 
 	void setDataRaw(void* value, size_t size) {
-		try {
-			glBindBuffer(GL_UNIFORM_BUFFER, _bufferID);
-			glBufferSubData(GL_UNIFORM_BUFFER, 0, size, value);
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-		} catch (std::out_of_range& e) {
-			// std::cerr << "Uniform buffer is missing! Did you forget to use that variable in that shader?: " << name << std::endl;
-			// throw ShaderProgramException(std::string("Uniform buffer is missing! Did you forget to use that variable in that shader?: ") + name);
-		}
+		glBindBuffer(GL_UNIFORM_BUFFER, _bufferID);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, size, value);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 
 	GLuint getID() const { return _bufferID; }

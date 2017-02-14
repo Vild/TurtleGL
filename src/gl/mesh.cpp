@@ -43,11 +43,8 @@ void Mesh::finalize() {
 	// TODO:
 }
 
-void Mesh::render(const glm::mat4& vp, size_t count, GLenum drawMode) {
-	_program->bind();
+void Mesh::render(size_t count, GLenum drawMode) {
 	glBindVertexArray(_vao);
-
-	_program->setUniform("vp", vp);
 	glDrawElementsInstanced(drawMode, _indices.size(), GL_UNSIGNED_INT, NULL, count);
 }
 

@@ -16,9 +16,10 @@ uniform mat4 vp;
 
 struct Light {
 	vec3 pos;
-	float _p0;
+	float radius;
 	vec3 color;
-	float _p1;
+	float linear;
+	float quadratic;
 };
 
 #define LIGHT_COUNT 16
@@ -29,8 +30,9 @@ layout (std140) uniform Lights {
 
 void main() {
 	vPos = (m * vec4(vertPos, 1.0f)).xyz;
-	vNormal = (m * vec4(vertNormal, 1.0f)).xyz;
+	mat3 normalMatrix = transpose(inverse(mat3(m)));
+	vNormal = normalize(normalMatrix * vertNormal);
 	vColor = lights[gl_InstanceID].color;
 	vUV = vertUV;
-	gl_Position = vp * m * vec4(vertPos, 1.0);
+	gl_Position = vp * (m * vec4(vertPos, 1.0f));
 }
