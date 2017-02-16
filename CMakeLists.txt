@@ -25,17 +25,31 @@ include_directories(${OPENGL_INCLUDE_DIR})
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIRS})
 
-include_directories(${PROJECT_SOURCE_DIR}/src)
-set(ASSIMP_LIB_INSTALL_DIR "${CMAKE_LIBRARY_PATH}")
-set(ASSIMP_INCLUDE_INSTALL_DIR "${CMAKE_INCLUDE_PATH}")
-set(ASSIMP_BIN_INSTALL_DIR "${PROJECT_SOURCE_DIR}/windows/bin")
-set(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
-set(ASSIMP_BUILD_SAMPLES OFF)
-set(ASSIMP_BUILD_TESTS OFF)
+if(WIN32)
+	set(ASSIMP_LIBRARIES "${CMAKE_LIBRARY_PATH}/assimp-vc140-mt.lib")
+else()
+	find_package(ASSIMP CONFIG)
+	if(ASSIMP_LIBRARIES)
+		unset(ASSIMP_ROOT_DIR)
+		unset(ASSIMP_CXX_FLAGS)
+		unset(ASSIMP_LINK_FLAGS)
+		unset(ASSIMP_Boost_VERSION)
+		unset(ASSIMP_INCLUDE_DIRS)
+		unset(ASSIMP_LIBRARIES)
+		set(ASSIMP_FOUND TRUE)
+	else()
+		find_library(ASSIMP_LIBRARIES
+			NAMES assimp
+		)
+		include(FindPackageHandleStandardArgs)
+		find_package_handle_standard_args(
+			ASSIMP
+			REQUIRED_VARS ASSIMP_LIBRARIES
+		)
+	endif()
+endif()
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/windows/assimp-3.3.1" "${PROJECT_SOURCE_DIR}/windows/assimp-3.3.1-build")
-set(ASSIMP_LIBRARY assimp)
-include_directories(${ASSIMP_INCLUDE_INSTALL_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
 # Source files
 file(GLOB_RECURSE SOURCE_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp)
@@ -43,7 +57,7 @@ file(GLOB_RECURSE HEADER_FILES ${PROJECT_SOURCE_DIR}/src/*.hpp)
 
 # Compile and Link
 add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
-target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${ASSIMP_LIBRARY})
+target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${OPENGL_LIBRARIES} ${GLEW_LIBRARIES} ${ASSIMP_LIBRARIES})
 
 if(WIN32)
 	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
