@@ -31,7 +31,7 @@ public:
 private:
 	uint32_t _width = 1280;
 	uint32_t _height = 720;
-	bool _vsync = false;
+	bool _vsync = true;
 
 	float _speed = 5.0f;
 	float _fov = 80.0f;
@@ -71,6 +71,7 @@ private:
 		float radius;
 		glm::vec3 color;
 		float linear;
+		glm::vec3 _pad0;
 		float quadratic;
 
 		Light() : pos(glm::vec3(0)), radius(0), color(glm::vec3(0)), linear(0), quadratic(0) {}

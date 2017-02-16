@@ -141,12 +141,12 @@ int Engine::run() {
 			}
 		}
 		{
-			glCullFace(GL_NONE);
+			glDisable(GL_CULL_FACE);
 			glDepthFunc(GL_LEQUAL);
 			glm::mat4 skyboxVP = _projection * glm::extractMatrixRotation(_view); // Never move the skybox only rotate
 			_skyboxProgram->setUniform("vp", skyboxVP);
 			_skybox->render();
-			glCullFace(GL_BACK);
+			glEnable(GL_CULL_FACE);
 		}
 
 		fps++;

@@ -10,6 +10,7 @@ struct Light {
 	float radius;
 	vec3 color;
 	float linear;
+	vec3 _pad0;
 	float quadratic;
 };
 
@@ -39,7 +40,6 @@ void main() {
 		if(distance < lights[i].radius) {
 			vec3 toLight = normalize(lights[i].pos - pos);
 			vec3 lightColor = max(dot(normal, toLight), 0.0) * diffuse * lights[i].color;
-			//lighting += lightColor * (lights[i].radius - distance) / lights[i].radius;
 			// Specular
 			vec3 halfwayDir = normalize(toLight + toCamera);
 			float spec = pow(max(dot(normal, halfwayDir), 0.0), 16.0);

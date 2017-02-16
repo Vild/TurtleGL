@@ -118,7 +118,7 @@ std::shared_ptr<Texture> AssimpEntity::_getTexture(const std::string& filename) 
 		printf("\tmWidth: %d\n", tex->mWidth);
 		printf("\tmHeight: %d\n", tex->mHeight);
 		printf("\tachFormatHint: %s\n", tex->achFormatHint);
-		printf("\tpcData: 0x%p\n", (void*)tex->pcData);
+		printf("\tpcData: %p\n", (void*)tex->pcData);
 		if (tex->mHeight)
 			return std::make_shared<Texture>(tex->mWidth, tex->mHeight, (void*)tex->pcData);
 		else

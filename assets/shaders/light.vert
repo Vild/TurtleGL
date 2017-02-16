@@ -19,6 +19,7 @@ struct Light {
 	float radius;
 	vec3 color;
 	float linear;
+	vec3 _pad0;
 	float quadratic;
 };
 

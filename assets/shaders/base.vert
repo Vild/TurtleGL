@@ -14,11 +14,12 @@ out vec2 vUV;
 uniform mat4 vp;
 
 void main() {
-	vPos = (m * vec4(vertPos, 1.0f)).xyz;
+	vec4 pos = m * vec4(vertPos, 1.0f);
+	vPos = pos.xyz;
 	// http://www.lighthouse3d.com/tutorials/glsl-12-tutorial/the-normal-matrix/
 	mat3 normalMatrix = transpose(inverse(mat3(m)));
 	vNormal = normalize(normalMatrix * vertNormal);
 	vColor = vertColor;
 	vUV = vertUV;
-	gl_Position = (vp * m) * vec4(vertPos, 1.0);
+	gl_Position = vp * pos;
 }
