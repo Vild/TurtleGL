@@ -45,7 +45,7 @@ void main() {
 			float spec = pow(max(dot(normal, halfwayDir), 0.0), 16.0);
 			vec3 specular = lights[i].color * spec * specular;
 			// Attenuation
-			float attenuation = 1.0 / (1.0 + lights[i].linear * distance + lights[i].quadratic * distance * distance);
+			float attenuation = 1.0;// / (1.0 + lights[i].linear * distance + lights[i].quadratic * distance * distance);
 			lightColor *= attenuation;
 			specular *= attenuation;
 			lighting += lightColor + specular;
