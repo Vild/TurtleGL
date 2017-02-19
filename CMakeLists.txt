@@ -28,25 +28,7 @@ include_directories(${GLEW_INCLUDE_DIRS})
 if(WIN32)
 	set(ASSIMP_LIBRARIES "${CMAKE_LIBRARY_PATH}/assimp-vc140-mt.lib")
 else()
-	find_package(ASSIMP CONFIG)
-	if(ASSIMP_LIBRARIES)
-		unset(ASSIMP_ROOT_DIR)
-		unset(ASSIMP_CXX_FLAGS)
-		unset(ASSIMP_LINK_FLAGS)
-		unset(ASSIMP_Boost_VERSION)
-		unset(ASSIMP_INCLUDE_DIRS)
-		unset(ASSIMP_LIBRARIES)
-		set(ASSIMP_FOUND TRUE)
-	else()
-		find_library(ASSIMP_LIBRARIES
-			NAMES assimp
-		)
-		include(FindPackageHandleStandardArgs)
-		find_package_handle_standard_args(
-			ASSIMP
-			REQUIRED_VARS ASSIMP_LIBRARIES
-		)
-	endif()
+	set(ASSIMP_LIBRARIES assimp)
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -62,15 +44,6 @@ target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${OP
 if(WIN32)
 	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${PROJECT_SOURCE_DIR}/assets"
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>/../assets)
-	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${PROJECT_SOURCE_DIR}/windows/bin"
         $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-else()
-	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${PROJECT_SOURCE_DIR}/assets"
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets)
 endif()
