@@ -22,13 +22,16 @@ bool hasTextureCoords(aiMesh* mesh, unsigned int pIndex) {
 		return mesh->mTextureCoords[pIndex] != NULL && mesh->mNumVertices > 0;
 }
 
-AssimpEntity::AssimpEntity(std::vector<std::shared_ptr<ShaderProgram>> programs, const std::string& filename)
-	: Entity(_getModel(programs, filename)), _texture(_getTexture(filename)) {}
+AssimpEntity::AssimpEntity(std::vector<std::shared_ptr<ShaderProgram>> programs, const std::string& filename, const std::string& normalTexture)
+	: Entity(_getModel(programs, filename)),
+		_texture(_getTexture(filename)),
+		_normalTexture(Engine::getInstance().getTextureManager()->getTexture(normalTexture)) {}
 
 AssimpEntity::~AssimpEntity() {}
 
 void AssimpEntity::render(GLenum drawMode) {
 	_texture->bind(0);
+	_normalTexture->bind(1);
 	Entity::render(drawMode);
 }
 
@@ -124,7 +127,7 @@ std::shared_ptr<Texture> AssimpEntity::_getTexture(const std::string& filename) 
 		else
 			return std::make_shared<Texture>(tex->achFormatHint, (void*)tex->pcData, tex->mWidth);
 	} else {
-		std::string fullPath = filename.substr(0, filename.find_last_of("/\\")) + path.data; // TODO: fix path
+		std::string fullPath = filename.substr(0, filename.find_last_of("/\\") + 1) + path.data; // TODO: fix path
 		printf("External texture: %s\n", fullPath.c_str());
 		return Engine::getInstance().getTextureManager()->getTexture(fullPath);
 	}

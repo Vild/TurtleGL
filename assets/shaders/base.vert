@@ -4,6 +4,7 @@ in vec3 vertPos;
 in vec3 vertNormal;
 in vec3 vertColor;
 in vec2 vertUV;
+in vec3 vertTangent;
 in mat4 m;
 
 out vec3 vPos;

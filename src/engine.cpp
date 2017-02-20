@@ -6,7 +6,7 @@
 #include <cmath>
 
 #include "entity/box.hpp"
-#include "entity/sphere.hpp"
+#include "entity/earth.hpp"
 #include "entity/duck.hpp"
 
 Engine::~Engine() {
@@ -256,7 +256,7 @@ void Engine::_initMeshes() {
 	std::vector<std::shared_ptr<ShaderProgram>> shaders = {_baseProgram};
 
 	_entities.push_back(std::make_shared<Box>(shaders));
-	_entities.push_back(std::make_shared<Sphere>(shaders));
+	_entities.push_back(std::make_shared<Earth>(shaders));
 	_entities.push_back(std::make_shared<Duck>(shaders));
 	{
 		std::vector<Vertex> verticies = {
