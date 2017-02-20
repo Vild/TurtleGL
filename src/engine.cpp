@@ -109,10 +109,10 @@ int Engine::run() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		_deferredProgram->bind();
-		_deferred->getAttachments()[0].texture->bind(0);
-		_deferred->getAttachments()[1].texture->bind(1);
-		_deferred->getAttachments()[2].texture->bind(2);
-		_deferredProgram->setUniform("defPos", 0).setUniform("defNormal", 1).setUniform("defDiffuseSpecular", 2);
+		_deferred->getAttachments()[0].texture->bind(10);
+		_deferred->getAttachments()[1].texture->bind(11);
+		_deferred->getAttachments()[2].texture->bind(12);
+		_deferredProgram->setUniform("defPos", 10).setUniform("defNormal", 11).setUniform("defDiffuseSpecular", 12);
 
 		//_deferredPlane->uploadBufferArray("m", glm::mat4(1))); // Not needed
 		_deferredProgram->setUniform("vp", glm::mat4(1));
@@ -137,7 +137,6 @@ int Engine::run() {
 			auto kd = _skybox->getMaterial().map_Kd;
 			if (kd) {
 				_skybox->getMaterial().map_Kd->bind(0);
-				_skyboxProgram->setUniform("diffuseTexture", 0);
 			}
 		}
 		{
@@ -208,22 +207,24 @@ void Engine::_initShaders() {
 		_baseProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.frag", ShaderType::fragment))
 			.finalize();
-		_baseProgram->bind().addUniform("vp").addUniform("diffuseTexture");
-		_baseProgram->setUniform("diffuseTexture", 0);
+		_baseProgram->bind().addUniform("vp").addUniform("diffuseTexture").addUniform("normalTexture");
+		_baseProgram->setUniform("diffuseTexture", 0).setUniform("normalTexture", 1);
 	}
 	{
 		_skyboxProgram = std::make_shared<ShaderProgram>();
 		_skyboxProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/skybox.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/skybox.frag", ShaderType::fragment))
 			.finalize();
-		_skyboxProgram->bind().addUniform("vp").addUniform("diffuseTexture");
+		_skyboxProgram->bind().addUniform("vp").addUniform("diffuseTexture").addUniform("normalTexture");
+		_skyboxProgram->setUniform("diffuseTexture", 0).setUniform("normalTexture", 1);
 	}
 	{
 		_deferredProgram = std::make_shared<ShaderProgram>();
 		_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.frag", ShaderType::fragment))
 			.finalize();
-		_deferredProgram->bind().addUniform("vp").addUniform("defPos").addUniform("defNormal").addUniform("defDiffuseSpecular").addUniform("cameraPos");
+		_deferredProgram->bind().addUniform("vp").addUniform("defPos").addUniform("defNormal").addUniform("defDiffuseSpecular").addUniform("cameraPos").addUniform("normalTexture");
+		_deferredProgram->setUniform("normalTexture", 1);
 	}
 }
 

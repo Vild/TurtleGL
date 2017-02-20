@@ -44,7 +44,6 @@ void main() {
 		float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
 		vec3 specularLight = spec * specular * lights[i].color;
 
-
 		// Ambient
 		vec3 ambientLight = lights[i].color * 0.1f;
 

@@ -74,6 +74,9 @@ std::shared_ptr<Mesh> AssimpEntity::_getModel(std::vector<std::shared_ptr<Shader
 			} else
 				vertex.uv = glm::vec2{1.f, 1.f};
 
+			p = mesh->mTangents[j];
+			vertex.tangent = glm::vec3{p.x, p.y, p.z};
+
 			vertices.push_back(vertex);
 		}
 

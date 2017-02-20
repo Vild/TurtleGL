@@ -11,16 +11,30 @@ out vec3 vPos;
 out vec3 vNormal;
 out vec3 vColor;
 out vec2 vUV;
+out mat3 vTBN;
 
 uniform mat4 vp;
+
+
+mat3 calcTBN(mat3 normalMatrix, vec3 normal) {
+	vec3 T = normalize(normalMatrix * vertTangent);
+	vec3 N = normalize(normalMatrix * normal);
+	// Gram-Schmidt process
+	T = normalize(T - dot(T, N) * N);
+	vec3 B = cross(T, N);
+	return mat3(T, B, N);
+}
 
 void main() {
 	vec4 pos = m * vec4(vertPos, 1.0f);
 	vPos = pos.xyz;
-	// http://www.lighthouse3d.com/tutorials/glsl-12-tutorial/the-normal-matrix/
+
 	mat3 normalMatrix = transpose(inverse(mat3(m)));
 	vNormal = normalize(normalMatrix * vertNormal);
+
 	vColor = vertColor;
 	vUV = vertUV;
+	vTBN = calcTBN(normalMatrix, vertNormal);
+
 	gl_Position = vp * pos;
 }

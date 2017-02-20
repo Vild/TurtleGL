@@ -9,12 +9,17 @@ in vec3 vPos;
 in vec3 vNormal;
 in vec3 vColor;
 in vec2 vUV;
+in mat3 vTBN;
 
 uniform sampler2D diffuseTexture;
+uniform sampler2D normalTexture;
 
 void main() {
 	defPos = vPos;
-	defNormal = vNormal;
+
+	vec3 normal = normalize(texture2D(normalTexture, vUV).rgb * 2.0 - vec3(1.0));
+	defNormal = normalize(vTBN * normal);
+
 	defDiffuseSpecular.rgb = vColor * texture(diffuseTexture, vUV).rgb;
 	defDiffuseSpecular.a = 0.5f;
 }

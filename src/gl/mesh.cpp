@@ -186,6 +186,7 @@ void Mesh::_uploadData() {
 		GLint vertNormal = program->getAttribute("vertNormal");
 		GLint vertColor = program->getAttribute("vertColor");
 		GLint vertUV = program->getAttribute("vertUV");
+		GLint vertTangent = program->getAttribute("vertTangent");
 
 		if (vertPos != -1)
 			glEnableVertexAttribArray(vertPos);
@@ -195,6 +196,8 @@ void Mesh::_uploadData() {
 			glEnableVertexAttribArray(vertColor);
 		if (vertUV != -1)
 			glEnableVertexAttribArray(vertUV);
+		if (vertTangent != -1)
+			glEnableVertexAttribArray(vertTangent);
 
 		if (vertPos != -1)
 			glVertexAttribPointer(vertPos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
@@ -204,5 +207,7 @@ void Mesh::_uploadData() {
 			glVertexAttribPointer(vertColor, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, color));
 		if (vertUV != -1)
 			glVertexAttribPointer(vertUV, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, uv));
+		if (vertTangent != -1)
+			glVertexAttribPointer(vertTangent, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, tangent));
 	}
 }
