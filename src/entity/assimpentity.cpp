@@ -45,7 +45,7 @@ std::shared_ptr<Mesh> AssimpEntity::_getModel(std::shared_ptr<ShaderProgram> pro
 	std::vector<Vertex> vertices;
 	std::vector<GLuint> indices;
 
-unsigned int counterVertices = 0;
+	unsigned int counterVertices = 0;
 	for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[i];
 		bool hasColors = hasVertexColors(mesh, 0);

@@ -10,7 +10,7 @@ public:
 	TextureManager();
 	virtual ~TextureManager();
 
-	std::shared_ptr<Texture> getTexture(const std::string & file);
+	std::shared_ptr<Texture> getTexture(const std::string& file);
 	std::shared_ptr<Texture> getErrorTexture();
 
 private:

@@ -14,7 +14,7 @@ std::shared_ptr<Texture> TextureManager::getTexture(const std::string& file) {
 	try {
 		std::shared_ptr<Texture> tex = std::make_shared<Texture>(file);
 		return _storage[file] = tex;
-	} catch (const char *) {
+	} catch (const char*) {
 	}
 	return _storage[file] = _errorTexture;
 }
