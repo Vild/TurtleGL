@@ -304,24 +304,34 @@ void Engine::_initFramebuffers() {
 
 void Engine::_initLights() {
 	_lights.resize(LIGHT_COUNT);
-	for (int i = 0; i < LIGHT_COUNT; i++) {
-		_lights[i].pos = glm::vec3{((i % 8) % 3) * 6 - 2, 2 + (i / 8) * 4, ((i % 8) / 3) * 6 - 2};
-		float r = (i % 4) / 4.0;
-		float g = (i / 4) / 4.0;
-		float b = 1 - r - g;
-		if (b < 0)
-			b = 0;
+//	for (int i = 0; i < LIGHT_COUNT; i++) {
+//		_lights[i].pos = glm::vec3{((i % 8) % 3) * 6 - 2, 2 + (i / 8) * 4, ((i % 8) / 3) * 6 - 2};
+//		float r = (i % 4) / 4.0;
+//		float g = (i / 4) / 4.0;
+//		float b = 1 - r - g;
+//		if (b < 0)
+//			b = 0;
+//
+//		_lights[i].color = glm::vec3{r, g, b};
+//
+//
+//// https://learnopengl.com/#!Advanced-Lighting/Deferred-Shading
+//		GLfloat constant = 1.0;
+//		_lights[i].linear = 0.7;
+//		_lights[i].quadratic = 1.8;
+//		GLfloat lightMax = fmaxf(fmaxf(_lights[i].color.r, _lights[i].color.g), _lights[i].color.b);
+//		_lights[i].radius = (-_lights[i].linear + sqrtf(_lights[i].linear * _lights[i].linear - 4 * _lights[i].quadratic * (constant - (256.0 / 5.0) * lightMax))) / (2 * _lights[i].quadratic);
+//	}
 
-		_lights[i].color = glm::vec3{r, g, b};
+	// One light for testing. 
+	_lights[0].pos = glm::vec3(10, 10, 10);
+	_lights[0].color = glm::vec3( 1, 1, 1 );
+	GLfloat constant = 1.0;
+	_lights[0].linear = 0.7;
+	_lights[0].quadratic = 1.8;
+	GLfloat lightMax = fmaxf(fmaxf(_lights[0].color.r, _lights[0].color.g), _lights[0].color.b);
+	_lights[0].radius = (-_lights[0].linear + sqrtf(_lights[0].linear * _lights[0].linear - 4 * _lights[0].quadratic * (constant - (256.0 / 5.0) * lightMax))) / (2 * _lights[0].quadratic);
 
-
-// https://learnopengl.com/#!Advanced-Lighting/Deferred-Shading
-		GLfloat constant = 1.0;
-		_lights[i].linear = 0.7;
-		_lights[i].quadratic = 1.8;
-		GLfloat lightMax = fmaxf(fmaxf(_lights[i].color.r, _lights[i].color.g), _lights[i].color.b);
-		_lights[i].radius = (-_lights[i].linear + sqrtf(_lights[i].linear * _lights[i].linear - 4 * _lights[i].quadratic * (constant - (256.0 / 5.0) * lightMax))) / (2 * _lights[i].quadratic);
-	}
 
 	_lightsBuffer = std::make_shared<UniformBuffer>(sizeof(Light) * LIGHT_COUNT);
 	_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);

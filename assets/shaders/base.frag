@@ -16,5 +16,5 @@ void main() {
 	defPos = vPos;
 	defNormal = vNormal;
 	defDiffuseSpecular.rgb = vColor * texture(diffuseTexture, vUV).rgb;
-	defDiffuseSpecular.a = 0.25;
+	defDiffuseSpecular.a = 0.5f;
 }

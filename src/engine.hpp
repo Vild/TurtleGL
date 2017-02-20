@@ -77,7 +77,7 @@ private:
 		Light() : pos(glm::vec3(0)), radius(0), color(glm::vec3(0)), linear(0), quadratic(0) {}
 	};
 
-	static const int LIGHT_COUNT = 16;
+	static const int LIGHT_COUNT = 1;
 	std::vector<Light> _lights;
 	std::shared_ptr<UniformBuffer> _lightsBuffer;
 

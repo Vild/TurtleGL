@@ -23,7 +23,7 @@ struct Light {
 	float quadratic;
 };
 
-#define LIGHT_COUNT 16
+#define LIGHT_COUNT 1
 layout (std140) uniform Lights {
 	Light lights[LIGHT_COUNT];
 };

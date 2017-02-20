@@ -10,5 +10,16 @@ build/
 *.dll
 *.exe
 *.lib
+.vs/
+*.vcxproj
+*.vcxproj.filters
+CMakeCache.txt
+CMakeFiles/
+*.cmake
+turtlegl.dir/
+*turtlegl.VC.db
+*turtlegl.VC.VC.opendb
+Debug/
+*.sln
 windows/
 .vscode/
