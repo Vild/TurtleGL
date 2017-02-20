@@ -33,20 +33,22 @@ void main() {
 	vec3 lighting = vec3(0);
 
 	vec3 toCamera = normalize(cameraPos - pos);
+	const float shininess = 64.0f;
 	for (int i = 0; i < LIGHT_COUNT; i++) {
 		// Diffuse
 		vec3 toLight = normalize(lights[i].pos - pos);
 		vec3 diffuseLight = max(dot(normal, toLight), 0.0f) * lights[i].color;
 
-		// Specular
-		vec3 reflectDir = reflect(-toLight, normal);
-		float spec = pow(max(dot(toCamera, reflectDir), 0.0f), 64.0f);
+		// Specular (Blinn-phong)
+		vec3 halfwayDir = normalize(toLight + toCamera);
+		float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
 		vec3 specularLight = spec * specular * lights[i].color;
+
 
 		// Ambient
 		vec3 ambientLight = lights[i].color * 0.1f;
 
-		lighting = (diffuseLight) * diffuse;
+		lighting = (ambientLight + diffuseLight + specularLight) * diffuse;
 	}
 
 	outColor = vec4(lighting, 1);

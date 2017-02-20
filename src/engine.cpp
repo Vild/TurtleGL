@@ -323,7 +323,7 @@ void Engine::_initLights() {
 //		_lights[i].radius = (-_lights[i].linear + sqrtf(_lights[i].linear * _lights[i].linear - 4 * _lights[i].quadratic * (constant - (256.0 / 5.0) * lightMax))) / (2 * _lights[i].quadratic);
 //	}
 
-	// One light for testing. 
+	// One light for testing.
 	_lights[0].pos = glm::vec3(10, 10, 10);
 	_lights[0].color = glm::vec3( 1, 1, 1 );
 	GLfloat constant = 1.0;
@@ -346,7 +346,7 @@ void Engine::_initLights() {
 
 	_lightsMatrix.resize(LIGHT_COUNT);
 	for (int i = 0; i < LIGHT_COUNT; i++)
-		_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(_lights[i].radius / 2.0));
+		_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(0.5f));
 
 	_lightBulb = std::make_shared<Mesh>(_lightProgram, "assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj");
 
