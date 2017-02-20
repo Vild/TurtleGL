@@ -1,19 +1,22 @@
 #include "duck.hpp"
 
-Duck::Duck(std::shared_ptr<ShaderProgram> program) : AssimpEntity(program, "assets/objects/jeep1.fbx"), _model(glm::mat4(1)) {
+Duck::Duck(std::vector<std::shared_ptr<ShaderProgram>> programs) : AssimpEntity(programs, "assets/objects/jeep1.fbx"), _model(glm::mat4(1)) {
 	_mesh
 		->addBuffer("m",
-								[](std::shared_ptr<ShaderProgram> program, GLuint id) {
-									GLint m = program->getAttribute("m");
-									if (m == -1)
-										return;
+								[](std::vector<std::shared_ptr<ShaderProgram>> programs, GLuint id) {
 									glBindBuffer(GL_ARRAY_BUFFER, id);
 									glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), NULL, GL_STATIC_DRAW); // Will only be uploaded once
 
-									for (int i = 0; i < 4; i++) {
-										glEnableVertexAttribArray(m + i);
-										glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
-										glVertexAttribDivisor(m + i, 1);
+									for (auto program : programs) {
+										program->bind();
+										GLint m = program->getAttribute("m");
+										if (m == -1)
+											return;
+										for (int i = 0; i < 4; i++) {
+											glEnableVertexAttribArray(m + i);
+											glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+											glVertexAttribDivisor(m + i, 1);
+										}
 									}
 
 									glBindBuffer(GL_ARRAY_BUFFER, 0);

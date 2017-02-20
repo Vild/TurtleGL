@@ -5,21 +5,24 @@
 #include <glm/glm.hpp>
 #include <cstdint>
 
-Box::Box(std::shared_ptr<ShaderProgram> program) : AssimpEntity(program, "assets/objects/duck.fbx"), _baseMatrix(glm::scale(glm::vec3(0.01f))) {
+Box::Box(std::vector<std::shared_ptr<ShaderProgram>> programs) : AssimpEntity(programs, "assets/objects/duck.fbx"), _baseMatrix(glm::scale(glm::vec3(0.01f))) {
 	_drawCount = 27;
 	_mesh
 		->addBuffer("m",
-								[&](std::shared_ptr<ShaderProgram> program, GLuint id) {
-									GLint m = program->getAttribute("m");
-									if (m == -1)
-										return;
+								[&](std::vector<std::shared_ptr<ShaderProgram>> programs, GLuint id) {
 									glBindBuffer(GL_ARRAY_BUFFER, id);
 									glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * _drawCount, NULL, GL_STATIC_DRAW); // Will only be uploaded once
 
-									for (int i = 0; i < 4; i++) {
-										glEnableVertexAttribArray(m + i);
-										glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
-										glVertexAttribDivisor(m + i, 1);
+									for (auto program : programs) {
+										program->bind();
+										GLint m = program->getAttribute("m");
+										if (m == -1)
+											return;
+										for (int i = 0; i < 4; i++) {
+											glEnableVertexAttribArray(m + i);
+											glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+											glVertexAttribDivisor(m + i, 1);
+										}
 									}
 
 									glBindBuffer(GL_ARRAY_BUFFER, 0);

@@ -31,11 +31,11 @@ struct Material {
 
 class Mesh {
 public:
-	Mesh(std::shared_ptr<ShaderProgram> program, std::vector<Vertex> vertices, std::vector<GLuint> indices);
-	Mesh(std::shared_ptr<ShaderProgram> program, const std::string& file);
+	Mesh(std::vector<std::shared_ptr<ShaderProgram>> programs, std::vector<Vertex> vertices, std::vector<GLuint> indices);
+	Mesh(std::vector<std::shared_ptr<ShaderProgram>> programs, const std::string& file);
 	virtual ~Mesh();
 
-	Mesh& addBuffer(const std::string& name, std::function<void(std::shared_ptr<ShaderProgram>, GLuint)> bindHelper, GLenum type = GL_ARRAY_BUFFER);
+	Mesh& addBuffer(const std::string& name, std::function<void(std::vector<std::shared_ptr<ShaderProgram>>, GLuint)> bindHelper, GLenum type = GL_ARRAY_BUFFER);
 
 	void finalize();
 
@@ -67,7 +67,7 @@ public:
 	}
 
 private:
-	std::shared_ptr<ShaderProgram> _program;
+	std::vector<std::shared_ptr<ShaderProgram>> _programs;
 	std::vector<Vertex> _vertices;
 	std::vector<GLuint> _indices;
 	Material _material;

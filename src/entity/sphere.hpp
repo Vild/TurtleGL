@@ -8,7 +8,7 @@ class Entity;
 
 class Sphere : public Entity {
 public:
-	Sphere(std::shared_ptr<ShaderProgram> program);
+	Sphere(std::vector<std::shared_ptr<ShaderProgram>> programs);
 	virtual ~Sphere();
 
 	virtual void update(float delta);
