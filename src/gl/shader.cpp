@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "shader.hpp"
 
 #include <iostream>
@@ -13,6 +15,10 @@ ShaderUnit::ShaderUnit(const std::string& file, ShaderType type) {
 	fseek(fp, 0, SEEK_SET);
 
 	char* str = (char*)malloc(size + 1);
+	if (!str) {
+		fclose(fp);
+		throw ShaderUnitException("Malloc failed");
+	}
 	str[size] = '\0';
 
 	fread(str, size, 1, fp);
@@ -53,7 +59,7 @@ ShaderUnit::ShaderUnit(const std::string& file, ShaderType type) {
 		if (status == GL_FALSE)
 			throw ShaderUnitException(std::string(buf));
 		else
-			printf(buf);
+			printf("%s", buf);
 	}
 }
 

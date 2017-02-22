@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "earth.hpp"
 
 #include "../engine.hpp"
@@ -30,8 +32,8 @@ Earth::Earth(std::vector<std::shared_ptr<ShaderProgram>> programs)
 Earth::~Earth() {}
 
 void Earth::update(float delta) {
-	_model *= glm::rotate(delta/10, glm::vec3(0, -1, 0));
+	_model *= glm::rotate(delta / 10, glm::vec3(0, -1, 0));
 
-	glm::mat4 model = glm::translate(glm::vec3(4, 4, 4)) * glm::scale(glm::vec3(1.0f / 150)) * _model * glm::rotate((float)M_PI/2.0f, glm::vec3(-1, 0, 0));
+	glm::mat4 model = glm::translate(glm::vec3(4, 4, 4)) * glm::scale(glm::vec3(1.0f / 150)) * _model * glm::rotate((float)M_PI / 2.0f, glm::vec3(-1, 0, 0));
 	_mesh->uploadBufferData("m", model);
 }

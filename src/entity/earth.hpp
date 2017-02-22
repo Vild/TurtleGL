@@ -2,7 +2,6 @@
 
 #include <memory>
 
-
 #include "assimpentity.hpp"
 
 class Earth : public AssimpEntity {

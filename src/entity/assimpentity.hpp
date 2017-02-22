@@ -6,7 +6,9 @@
 
 class AssimpEntity : public Entity {
 public:
-	AssimpEntity(std::vector<std::shared_ptr<ShaderProgram>> programs, const std::string& filename, const std::string& normalTexture = "assets/textures/errorNormal.png");
+	AssimpEntity(std::vector<std::shared_ptr<ShaderProgram>> programs,
+							 const std::string& filename,
+							 const std::string& normalTexture = "assets/textures/errorNormal.png");
 	virtual ~AssimpEntity();
 
 	virtual void render(GLenum drawMode = GL_TRIANGLES);

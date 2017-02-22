@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "engine.hpp"
 
 #include <glm/gtx/transform.hpp>
@@ -133,12 +135,7 @@ int Engine::run() {
 		_lightBulb->render(_lightsMatrix.size(), GL_LINES);
 
 		_skyboxProgram->bind();
-		{
-			auto kd = _skybox->getMaterial().map_Kd;
-			if (kd) {
-				_skybox->getMaterial().map_Kd->bind(0);
-			}
-		}
+		_skybox->getMaterial().map_Kd->bind(0);
 		{
 			glDisable(GL_CULL_FACE);
 			glDepthFunc(GL_LEQUAL);
@@ -223,7 +220,13 @@ void Engine::_initShaders() {
 		_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.frag", ShaderType::fragment))
 			.finalize();
-		_deferredProgram->bind().addUniform("vp").addUniform("defPos").addUniform("defNormal").addUniform("defDiffuseSpecular").addUniform("cameraPos").addUniform("normalTexture");
+		_deferredProgram->bind()
+			.addUniform("vp")
+			.addUniform("defPos")
+			.addUniform("defNormal")
+			.addUniform("defDiffuseSpecular")
+			.addUniform("cameraPos")
+			.addUniform("normalTexture");
 		_deferredProgram->setUniform("normalTexture", 1);
 	}
 }
