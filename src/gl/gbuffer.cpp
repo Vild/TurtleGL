@@ -1,13 +1,13 @@
-#include "framebuffer.hpp"
+#include "gbuffer.hpp"
 
-Framebuffer::Framebuffer() {
+GBuffer::GBuffer() {
 	glGenFramebuffers(1, &_fb);
 	_renderBuffer = 0;
 }
 
-Framebuffer::Framebuffer(GLuint fb) : _fb(fb), _renderBuffer(0) {}
+GBuffer::GBuffer(GLuint fb) : _fb(fb), _renderBuffer(0) {}
 
-Framebuffer::~Framebuffer() {
+GBuffer::~GBuffer() {
 	if (_renderBuffer)
 		glDeleteRenderbuffers(1, &_renderBuffer);
 
@@ -19,7 +19,7 @@ Framebuffer::~Framebuffer() {
 		glDeleteFramebuffers(1, &_fb);
 }
 
-Framebuffer& Framebuffer::bind(bool read, bool draw) {
+GBuffer& GBuffer::bind(bool read, bool draw) {
 	if (read) {
 		if (draw)
 			glBindFramebuffer(GL_FRAMEBUFFER, _fb);
@@ -31,7 +31,7 @@ Framebuffer& Framebuffer::bind(bool read, bool draw) {
 	return *this;
 }
 
-Framebuffer& Framebuffer::attachTexture(int id, size_t width, size_t height, GLenum dataFormat, GLenum dataType, int vectorSize) {
+GBuffer& GBuffer::attachTexture(int id, size_t width, size_t height, GLenum dataFormat, GLenum dataType, int vectorSize) {
 	GLuint texID;
 	glGenTextures(1, &texID);
 	glBindTexture(GL_TEXTURE_2D, texID);
@@ -48,7 +48,7 @@ Framebuffer& Framebuffer::attachTexture(int id, size_t width, size_t height, GLe
 	return *this;
 }
 
-Framebuffer& Framebuffer::attachRenderBuffer(size_t width, size_t height, GLenum format) {
+GBuffer& GBuffer::attachRenderBuffer(size_t width, size_t height, GLenum format) {
 	glGenRenderbuffers(1, &_renderBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, _renderBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, format, width, height);
@@ -56,7 +56,7 @@ Framebuffer& Framebuffer::attachRenderBuffer(size_t width, size_t height, GLenum
 	return *this;
 }
 
-Framebuffer& Framebuffer::finalize() {
+GBuffer& GBuffer::finalize() {
 	std::vector<GLenum> buffers;
 	for (size_t i = 0; i < _attachments.size(); i++)
 		buffers.push_back(GL_COLOR_ATTACHMENT0 + _attachments[i].id);
@@ -64,6 +64,6 @@ Framebuffer& Framebuffer::finalize() {
 	return *this;
 }
 
-const std::vector<attachment>& Framebuffer::getAttachments() {
+const std::vector<attachment>& GBuffer::getAttachments() {
 	return _attachments;
 }

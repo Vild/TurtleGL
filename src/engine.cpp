@@ -164,7 +164,7 @@ void Engine::_init() {
 	_textureManager = std::make_shared<TextureManager>(); // TODO: Move to own function?
 	_initShaders();
 	_initMeshes();
-	_initFramebuffers();
+	_initGBuffers();
 	_initLights();
 }
 
@@ -293,9 +293,9 @@ void Engine::_initMeshes() {
 	}
 }
 
-void Engine::_initFramebuffers() {
-	_screen = std::make_shared<Framebuffer>(0);
-	_deferred = std::make_shared<Framebuffer>();
+void Engine::_initGBuffers() {
+	_screen = std::make_shared<GBuffer>(0);
+	_deferred = std::make_shared<GBuffer>();
 	_deferred->bind()
 		.attachTexture(0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 3) // Position
 		.attachTexture(1, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 3) // Normal
@@ -397,7 +397,7 @@ void Engine::_initLights() {
 void Engine::_resolutionChanged() { // TODO: don't call all the time
 	_projection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 60.0f);
 	glViewport(0, 0, _width, _height);
-	_initFramebuffers();
+	_initGBuffers();
 }
 
 void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't call all the time

@@ -9,7 +9,7 @@
 
 #include "gl/shader.hpp"
 #include "gl/mesh.hpp"
-#include "gl/framebuffer.hpp"
+#include "gl/gbuffer.hpp"
 #include "gl/texture.hpp"
 #include "io/texturemanager.hpp"
 #include "entity/entity.hpp"
@@ -61,8 +61,8 @@ private:
 	std::shared_ptr<ShaderProgram> _deferredProgram;
 	std::shared_ptr<Mesh> _deferredPlane;
 
-	std::shared_ptr<Framebuffer> _screen;
-	std::shared_ptr<Framebuffer> _deferred;
+	std::shared_ptr<GBuffer> _screen;
+	std::shared_ptr<GBuffer> _deferred;
 
 	std::shared_ptr<ShaderProgram> _lightProgram;
 
@@ -92,7 +92,7 @@ private:
 	void _initGL();
 	void _initShaders();
 	void _initMeshes();
-	void _initFramebuffers();
+	void _initGBuffers();
 	void _initLights();
 
 	void _resolutionChanged();
