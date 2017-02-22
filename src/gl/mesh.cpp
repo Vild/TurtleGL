@@ -97,7 +97,7 @@ void Mesh::_loadObj(const std::string& fileName) {
 					} else {
 						while (true) {
 							// Loads in another material for each usemtl call.
-							char comparison[80];
+							char comparison[80] = {0};
 							Material tmp_material;
 							errorCheck = fscanf(mtl_file, "%s", line);
 							if (errorCheck == EOF) {
