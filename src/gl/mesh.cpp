@@ -1,9 +1,12 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "mesh.hpp"
 
+#include "../engine.hpp"
 #include <cstddef>
 
 Mesh::Mesh(std::vector<std::shared_ptr<ShaderProgram>> programs, std::vector<Vertex> vertices, std::vector<GLuint> indices)
-	: _programs(programs), _vertices(vertices), _indices(indices) {
+	: _programs(programs), _vertices(vertices), _indices(indices), _material(Material()) {
 	_makeBuffers();
 	_uploadData();
 }
@@ -66,7 +69,7 @@ void Mesh::_loadObj(const std::string& fileName) {
 	bool materials_Loaded = false;
 	FILE* file = fopen(fileName.c_str(), "r");
 	if (file == nullptr) {
-		printf("Unable to load file!\n");
+		printf("Unable to load file!: %s\n", fileName.c_str());
 	} else {
 		while (true) {
 			char line[256]; // Not sure how long a line can be in a .obj file.
@@ -93,11 +96,11 @@ void Mesh::_loadObj(const std::string& fileName) {
 					std::string theFilename = std::string("assets/objects/") + material_Filename;
 					FILE* mtl_file = fopen(theFilename.c_str(), "r");
 					if (mtl_file == nullptr) {
-						printf("Unable to load file!\n");
+						printf("Unable to load file!: %s\n", theFilename.c_str());
 					} else {
+						char comparison[80] = {0};
 						while (true) {
 							// Loads in another material for each usemtl call.
-							char comparison[80] = {0};
 							Material tmp_material;
 							errorCheck = fscanf(mtl_file, "%s", line);
 							if (errorCheck == EOF) {
@@ -120,7 +123,7 @@ void Mesh::_loadObj(const std::string& fileName) {
 									} else if (strcmp(line, "map_Kd") == 0) {
 										char texture_fileName[80];
 										fscanf(mtl_file, "%s\n", texture_fileName);
-										_material.map_Kd = std::make_shared<Texture>(texture_fileName);
+										_material.map_Kd = Engine::getInstance().getTextureManager()->getTexture(texture_fileName); // std::make_shared<Texture>(texture_fileName);
 										break;
 									}
 								}

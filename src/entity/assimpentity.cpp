@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "assimpentity.hpp"
 
 #include <exception>
@@ -102,7 +104,7 @@ std::shared_ptr<Texture> AssimpEntity::_getTexture(const std::string& filename) 
 		throw std::exception();
 	}
 
-	if (scene->mNumMaterials < 0)
+	if (scene->mNumMaterials == 0)
 		return Engine::getInstance().getTextureManager()->getTexture(""); // Error texture
 	const aiMaterial* pMaterial = scene->mMaterials[0];
 	if (pMaterial->GetTextureCount(aiTextureType_DIFFUSE) == 0)

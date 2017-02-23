@@ -1,3 +1,5 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "duck.hpp"
 
 Duck::Duck(std::vector<std::shared_ptr<ShaderProgram>> programs) : AssimpEntity(programs, "assets/objects/jeep1.fbx"), _model(glm::mat4(1)) {
