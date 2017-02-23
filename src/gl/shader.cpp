@@ -142,7 +142,7 @@ ShaderProgram& ShaderProgram::bind() {
 	return *this;
 }
 
-GLint ShaderProgram::getAttribute(const std::string& name) const {
+/*GLint ShaderProgram::getAttribute(const std::string& name) const {
 	GLint loc = glGetAttribLocation(_program, name.c_str());
 
 	if (loc == -1) {
@@ -150,4 +150,4 @@ GLint ShaderProgram::getAttribute(const std::string& name) const {
 		std::cerr << "Attribute not found: " << name << std::endl;
 	}
 	return loc;
-}
+}*/

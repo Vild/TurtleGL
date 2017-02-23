@@ -1,11 +1,10 @@
 #version 330 core
 
-in vec3 vertPos;
-in vec3 vertNormal;
-in vec3 vertColor;
-in vec2 vertUV;
-in mat4 m;
-//in vec3 lightColor;
+layout (location = 0) in vec3 vertPos;
+layout (location = 1) in vec3 vertNormal;
+layout (location = 2) in vec3 vertColor;
+layout (location = 3) in vec2 vertUV;
+layout (location = 5) in mat4 m;
 
 out vec3 vPos;
 out vec3 vNormal;

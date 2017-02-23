@@ -10,6 +10,18 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+enum ShaderAttributeID : GLint {
+	vertPos = 0,
+	vertNormal,
+	vertColor,
+	vertUV,
+	vertTangent,
+	m, // m = mat4, Requires 4 spaces
+	_m_priv_1,
+	_m_priv_2,
+	_m_priv_3
+};
+
 enum class ShaderType {
 	vertex = GL_VERTEX_SHADER,		 //
 	fragment = GL_FRAGMENT_SHADER, //
@@ -93,7 +105,7 @@ public:
 
 	ShaderProgram& bind();
 
-	GLint getAttribute(const std::string& name) const;
+	// GLint getAttribute(const std::string& name) const;
 
 	template <typename T>
 	ShaderProgram& setUniform(const std::string& name, const T& value) {

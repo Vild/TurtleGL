@@ -24,10 +24,8 @@ bool hasTextureCoords(aiMesh* mesh, unsigned int pIndex) {
 		return mesh->mTextureCoords[pIndex] != NULL && mesh->mNumVertices > 0;
 }
 
-AssimpEntity::AssimpEntity(std::vector<std::shared_ptr<ShaderProgram>> programs, const std::string& filename, const std::string& normalTexture)
-	: Entity(_getModel(programs, filename)),
-		_texture(_getTexture(filename)),
-		_normalTexture(Engine::getInstance().getTextureManager()->getTexture(normalTexture)) {}
+AssimpEntity::AssimpEntity(const std::string& filename, const std::string& normalTexture)
+	: Entity(_getModel(filename)), _texture(_getTexture(filename)), _normalTexture(Engine::getInstance().getTextureManager()->getTexture(normalTexture)) {}
 
 AssimpEntity::~AssimpEntity() {}
 
@@ -37,7 +35,7 @@ void AssimpEntity::render(GLenum drawMode) {
 	Entity::render(drawMode);
 }
 
-std::shared_ptr<Mesh> AssimpEntity::_getModel(std::vector<std::shared_ptr<ShaderProgram>> programs, const std::string& filename) {
+std::shared_ptr<Mesh> AssimpEntity::_getModel(const std::string& filename) {
 	Assimp::Importer importer;
 	importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_POINT);
 	const aiScene* scene = importer.ReadFile(filename, aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
@@ -91,7 +89,7 @@ std::shared_ptr<Mesh> AssimpEntity::_getModel(std::vector<std::shared_ptr<Shader
 		counterVertices += mesh->mNumVertices;
 	}
 
-	return std::make_shared<Mesh>(programs, vertices, indices);
+	return std::make_shared<Mesh>(vertices, indices);
 }
 
 std::shared_ptr<Texture> AssimpEntity::_getTexture(const std::string& filename) {

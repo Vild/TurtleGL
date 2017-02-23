@@ -4,26 +4,19 @@
 
 #include "../engine.hpp"
 
-Sphere::Sphere(std::vector<std::shared_ptr<ShaderProgram>> programs)
-	: Entity(std::make_shared<Mesh>(programs, "assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj")), _model(glm::mat4(1)) {
+Sphere::Sphere() : Entity(std::make_shared<Mesh>("assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj")), _model(glm::mat4(1)) {
 	_mesh
 		->addBuffer("m",
-								[](std::vector<std::shared_ptr<ShaderProgram>> programs, GLuint id) {
+								[](GLuint id) {
 									glm::mat4 mData = glm::scale(glm::vec3(0.01f));
 
 									glBindBuffer(GL_ARRAY_BUFFER, id);
 									glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), glm::value_ptr(mData), GL_STATIC_DRAW); // Will only be uploaded once
 
-									for (auto program : programs) {
-										program->bind();
-										GLint m = program->getAttribute("m");
-										if (m == -1)
-											return;
-										for (int i = 0; i < 4; i++) {
-											glEnableVertexAttribArray(m + i);
-											glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
-											glVertexAttribDivisor(m + i, 1);
-										}
+									for (int i = 0; i < 4; i++) {
+										glEnableVertexAttribArray(ShaderAttributeID::m + i);
+										glVertexAttribPointer(ShaderAttributeID::m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+										glVertexAttribDivisor(ShaderAttributeID::m + i, 1);
 									}
 
 									glBindBuffer(GL_ARRAY_BUFFER, 0);

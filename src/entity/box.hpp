@@ -6,7 +6,7 @@
 
 class Box : public AssimpEntity {
 public:
-	Box(std::vector<std::shared_ptr<ShaderProgram>> programs);
+	Box();
 
 	virtual void update(float delta);
 

@@ -96,11 +96,11 @@ int Engine::run() {
 		glViewport(0, 0, 1024, 1024);
 		_shadowmapFBO->bind();
 		glClear(GL_DEPTH_BUFFER_BIT);
-		
+
 		_shadowmapProgram->bind();
 		for (std::shared_ptr<Entity> entity : _entities)
 			entity->update(delta);
-		
+
 		for (std::shared_ptr<Entity> entity : _entities)
 			entity->render();
 
@@ -112,8 +112,8 @@ int Engine::run() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		_baseProgram->bind();
-		//for (std::shared_ptr<Entity> entity : _entities)
-		//	entity->update(delta);
+		/*for (std::shared_ptr<Entity> entity : _entities)
+			entity->update(delta);*/
 
 		_baseProgram->setUniform("vp", vp);
 		for (std::shared_ptr<Entity> entity : _entities)
@@ -131,7 +131,6 @@ int Engine::run() {
 		_shadowmapFBO->getAttachments()[0].texture->bind(13);
 		_deferredProgram->setUniform("defPos", 10).setUniform("defNormal", 11).setUniform("defDiffuseSpecular", 12).setUniform("shadowMap", 13);
 
-		//_deferredPlane->uploadBufferArray("m", glm::mat4(1))); // Not needed
 		_deferredProgram->setUniform("vp", glm::mat4(1));
 		_deferredPlane->render();
 
@@ -145,7 +144,6 @@ int Engine::run() {
 		// Render step 3.2 - Render lightsources as cubes
 		_lightProgram->bind();
 		_lightBulb->uploadBufferArray("m", _lightsMatrix);
-		//_lightBulb->uploadBufferArray("lightColor", _lightsColor);
 		_lightProgram->setUniform("vp", vp);
 		_lightBulb->render(_lightsMatrix.size(), GL_LINES);
 
@@ -257,35 +255,28 @@ void Engine::_initShaders() {
 
 void Engine::_initMeshes() {
 	{
-		_skybox = std::make_shared<Mesh>(std::vector<std::shared_ptr<ShaderProgram>>{_skyboxProgram}, "assets/objects/skybox.obj");
+		_skybox = std::make_shared<Mesh>("assets/objects/skybox.obj");
 		_skybox
 			->addBuffer("m",
-									[](std::vector<std::shared_ptr<ShaderProgram>> programs, GLuint id) {
+									[](GLuint id) {
 										glm::mat4 mData = glm::scale(glm::vec3(1.0f));
 
 										glBindBuffer(GL_ARRAY_BUFFER, id);
 										glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), glm::value_ptr(mData), GL_STATIC_DRAW); // Will only be uploaded once
 
-										for (auto program : programs) {
-											program->bind();
-											GLint m = program->getAttribute("m");
-											if (m == -1)
-												return;
-
-											for (int i = 0; i < 4; i++) {
-												glEnableVertexAttribArray(m + i);
-												glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
-												glVertexAttribDivisor(m + i, 1);
-											}
+										for (int i = 0; i < 4; i++) {
+											glEnableVertexAttribArray(ShaderAttributeID::m + i);
+											glVertexAttribPointer(ShaderAttributeID::m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+											glVertexAttribDivisor(ShaderAttributeID::m + i, 1);
 										}
+
 										glBindBuffer(GL_ARRAY_BUFFER, 0);
 									})
 			.finalize();
 	}
-	std::vector<std::shared_ptr<ShaderProgram>> shaders = {_shadowmapProgram, _baseProgram};
-	_entities.push_back(std::make_shared<Box>(shaders));
-	_entities.push_back(std::make_shared<Earth>(shaders));
-	_entities.push_back(std::make_shared<Duck>(shaders));
+	_entities.push_back(std::make_shared<Box>());
+	_entities.push_back(std::make_shared<Earth>());
+	_entities.push_back(std::make_shared<Duck>());
 	{
 		std::vector<Vertex> verticies = {
 			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//
@@ -294,24 +285,18 @@ void Engine::_initMeshes() {
 			Vertex{glm::vec3{-1, -1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 0}}, //
 		};
 		std::vector<GLuint> indicies = {0, 2, 1, 2, 0, 3};
-		_deferredPlane = std::make_shared<Mesh>(std::vector<std::shared_ptr<ShaderProgram>>{_deferredProgram}, verticies, indicies);
+		_deferredPlane = std::make_shared<Mesh>(verticies, indicies);
 		_deferredPlane
 			->addBuffer("m",
-									[](std::vector<std::shared_ptr<ShaderProgram>> programs, GLuint id) {
+									[](GLuint id) {
 										glm::mat4 mData = glm::mat4(1);
 										glBindBuffer(GL_ARRAY_BUFFER, id);
 										glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), glm::value_ptr(mData), GL_STATIC_DRAW); // Will only be uploaded once
 
-										for (auto program : programs) {
-											program->bind();
-											GLint m = program->getAttribute("m");
-											if (m == -1)
-												return;
-											for (int i = 0; i < 4; i++) {
-												glEnableVertexAttribArray(m + i);
-												glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
-												glVertexAttribDivisor(m + i, 1);
-											}
+										for (int i = 0; i < 4; i++) {
+											glEnableVertexAttribArray(ShaderAttributeID::m + i);
+											glVertexAttribPointer(ShaderAttributeID::m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+											glVertexAttribDivisor(ShaderAttributeID::m + i, 1);
 										}
 
 										glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -323,14 +308,14 @@ void Engine::_initMeshes() {
 void Engine::_initGBuffers() {
 	_screen = std::make_shared<GBuffer>(0);
 	_shadowmapFBO = std::make_shared<GBuffer>();
-	_shadowmapFBO->bind()
-		.attachDepthTexture(0, 1024, 1024);
+	_shadowmapFBO->bind().attachDepthTexture(0, 1024, 1024).finalize();
 	_deferred = std::make_shared<GBuffer>();
 	_deferred->bind()
 		.attachTexture(0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 3) // Position
 		.attachTexture(1, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 3) // Normal
 		.attachTexture(2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 4) // Diffuse + Specular
-		.attachRenderBuffer(_width, _height).finalize();
+		.attachRenderBuffer(_width, _height)
+		.finalize();
 }
 
 void Engine::_initLights() {
@@ -387,46 +372,25 @@ void Engine::_initLights() {
 	for (int i = 0; i < LIGHT_COUNT; i++)
 		_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(0.5f));
 
-	_lightBulb = std::make_shared<Mesh>(std::vector<std::shared_ptr<ShaderProgram>>{_lightProgram}, "assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj");
+	_lightBulb = std::make_shared<Mesh>("assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj");
 
 	_lightBulb
 		->addBuffer("m",
-								[&](std::vector<std::shared_ptr<ShaderProgram>> programs, GLuint id) {
+								[&](GLuint id) {
 									glBindBuffer(GL_ARRAY_BUFFER, id);
 									// GL_DYNAMIC_DRAW because the data will be changed alot
 									glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * LIGHT_COUNT, &_lightsMatrix[0], GL_DYNAMIC_DRAW);
 
 									// Hack below because glVertexAttribPointer can't handle mat4.
 									// Mat4 internally in the shader will be converted to a 4 vec4.
-									for (auto program : programs) {
-										program->bind();
-										GLint m = program->getAttribute("m");
-										if (m == -1)
-											return;
-										for (int i = 0; i < 4; i++) {
-											glEnableVertexAttribArray(m + i);
-											glVertexAttribPointer(m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
-											glVertexAttribDivisor(m + i, 1);
-										}
+									for (int i = 0; i < 4; i++) {
+										glEnableVertexAttribArray(ShaderAttributeID::m + i);
+										glVertexAttribPointer(ShaderAttributeID::m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+										glVertexAttribDivisor(ShaderAttributeID::m + i, 1);
 									}
 
 									glBindBuffer(GL_ARRAY_BUFFER, 0);
 								})
-		/*.addBuffer("lightColor",
-							 [&](std::vector<std::shared_ptr<ShaderProgram>> programs, GLuint id) {
-								 GLint lightColor = program->getAttribute("lightColor");
-								 if (lightColor == -1)
-									 return;
-
-								 glBindBuffer(GL_ARRAY_BUFFER, id);
-								 glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * LIGHT_COUNT, &_lightsColor[0], GL_DYNAMIC_DRAW);
-
-								 glEnableVertexAttribArray(lightColor);
-								 glVertexAttribPointer(lightColor, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (GLvoid*)0);
-								 glVertexAttribDivisor(lightColor, 1);
-
-								 glBindBuffer(GL_ARRAY_BUFFER, 0);
-							 })*/
 		.finalize();
 }
 

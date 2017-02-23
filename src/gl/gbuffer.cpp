@@ -65,7 +65,7 @@ GBuffer& GBuffer::attachDepthTexture(int id, size_t width, size_t height) {
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 
-	_attachments.push_back(attachment{ id, std::make_shared<Texture>(depthTexture) });
+	_attachments.push_back(attachment{id, std::make_shared<Texture>(depthTexture)});
 
 	return *this;
 }

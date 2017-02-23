@@ -1,7 +1,7 @@
 #version 330 core
 
-in vec3 vertPos;
-in mat4 m;
+layout (location = 0) in vec3 vertPos;
+layout (location = 5) in mat4 m;
 
 uniform mat4 lightSpaceMatrix;
 

@@ -3,7 +3,7 @@
 #include "assimpentity.hpp"
 class Duck : public AssimpEntity {
 public:
-	Duck(std::vector<std::shared_ptr<ShaderProgram>> programs);
+	Duck();
 	virtual ~Duck();
 	virtual void update(float delta);
 

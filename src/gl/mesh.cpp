@@ -5,13 +5,12 @@
 #include "../engine.hpp"
 #include <cstddef>
 
-Mesh::Mesh(std::vector<std::shared_ptr<ShaderProgram>> programs, std::vector<Vertex> vertices, std::vector<GLuint> indices)
-	: _programs(programs), _vertices(vertices), _indices(indices), _material(Material()) {
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices) : _vertices(vertices), _indices(indices), _material(Material()) {
 	_makeBuffers();
 	_uploadData();
 }
 
-Mesh::Mesh(std::vector<std::shared_ptr<ShaderProgram>> programs, const std::string& file) : _programs(programs) {
+Mesh::Mesh(const std::string& file) {
 	_makeBuffers();
 	_loadObj(file);
 	_uploadData();
@@ -29,13 +28,13 @@ Mesh::~Mesh() {
 	glDeleteVertexArrays(1, &_vao);
 }
 
-Mesh& Mesh::addBuffer(const std::string& name, std::function<void(std::vector<std::shared_ptr<ShaderProgram>>, GLuint)> bindHelper, GLenum type) {
+Mesh& Mesh::addBuffer(const std::string& name, std::function<void(GLuint)> bindHelper, GLenum type) {
 	glBindVertexArray(_vao);
 	GLuint id;
 	glGenBuffers(1, &id);
 
 	_extraBuffers[name] = id;
-	bindHelper(_programs, id);
+	bindHelper(id);
 
 	return *this;
 }
@@ -182,35 +181,15 @@ void Mesh::_uploadData() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indices.size() * sizeof(GLuint), _indices.data(), GL_STATIC_DRAW);
 
-	for (auto program : _programs) {
-		program->bind();
+	glEnableVertexAttribArray(ShaderAttributeID::vertPos);
+	glEnableVertexAttribArray(ShaderAttributeID::vertNormal);
+	glEnableVertexAttribArray(ShaderAttributeID::vertColor);
+	glEnableVertexAttribArray(ShaderAttributeID::vertUV);
+	glEnableVertexAttribArray(ShaderAttributeID::vertTangent);
 
-		GLint vertPos = program->getAttribute("vertPos");
-		GLint vertNormal = program->getAttribute("vertNormal");
-		GLint vertColor = program->getAttribute("vertColor");
-		GLint vertUV = program->getAttribute("vertUV");
-		GLint vertTangent = program->getAttribute("vertTangent");
-
-		if (vertPos != -1)
-			glEnableVertexAttribArray(vertPos);
-		if (vertNormal != -1)
-			glEnableVertexAttribArray(vertNormal);
-		if (vertColor != -1)
-			glEnableVertexAttribArray(vertColor);
-		if (vertUV != -1)
-			glEnableVertexAttribArray(vertUV);
-		if (vertTangent != -1)
-			glEnableVertexAttribArray(vertTangent);
-
-		if (vertPos != -1)
-			glVertexAttribPointer(vertPos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
-		if (vertNormal != -1)
-			glVertexAttribPointer(vertNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, normal));
-		if (vertColor != -1)
-			glVertexAttribPointer(vertColor, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, color));
-		if (vertUV != -1)
-			glVertexAttribPointer(vertUV, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, uv));
-		if (vertTangent != -1)
-			glVertexAttribPointer(vertTangent, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, tangent));
-	}
+	glVertexAttribPointer(ShaderAttributeID::vertPos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, position));
+	glVertexAttribPointer(ShaderAttributeID::vertNormal, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, normal));
+	glVertexAttribPointer(ShaderAttributeID::vertColor, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, color));
+	glVertexAttribPointer(ShaderAttributeID::vertUV, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, uv));
+	glVertexAttribPointer(ShaderAttributeID::vertTangent, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)offsetof(Vertex, tangent));
 }

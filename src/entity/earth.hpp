@@ -6,7 +6,7 @@
 
 class Earth : public AssimpEntity {
 public:
-	Earth(std::vector<std::shared_ptr<ShaderProgram>> programs);
+	Earth();
 	virtual ~Earth();
 
 	virtual void update(float delta);

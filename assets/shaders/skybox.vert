@@ -1,8 +1,8 @@
 #version 330 core
 
-in vec3 vertPos;
-in vec2 vertUV;
-in mat4 m;
+layout (location = 0) in vec3 vertPos;
+layout (location = 3) in vec2 vertUV;
+layout (location = 5) in mat4 m;
 
 out vec2 vUV;
 
