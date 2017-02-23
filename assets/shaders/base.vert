@@ -11,10 +11,11 @@ out vec3 vPos;
 out vec3 vNormal;
 out vec3 vColor;
 out vec2 vUV;
+out vec4 fragPosLightSpace;
 out mat3 vTBN;
 
 uniform mat4 vp;
-
+uniform mat4 lightSpaceMatrix;
 
 mat3 calcTBN(mat3 normalMatrix, vec3 normal) {
 	vec3 T = normalize(normalMatrix * vertTangent);
@@ -34,6 +35,7 @@ void main() {
 
 	vColor = vertColor;
 	vUV = vertUV;
+	fragPosLightSpace = lightSpaceMatrix * pos;
 	vTBN = calcTBN(normalMatrix, vertNormal);
 
 	gl_Position = vp * pos;

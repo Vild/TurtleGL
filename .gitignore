@@ -19,6 +19,7 @@ CMakeFiles/
 turtlegl.dir/
 *turtlegl.VC.db
 *turtlegl.VC.VC.opendb
+*engine.cpp~RF192eafaf.TMP
 Debug/
 *.sln
 windows/

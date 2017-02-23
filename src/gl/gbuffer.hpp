@@ -21,6 +21,7 @@ public:
 
 	GBuffer& attachTexture(int id, size_t width, size_t height, GLenum dataFormat, GLenum dataType, int vectorSize);
 	GBuffer& attachRenderBuffer(size_t width, size_t height, GLenum format = GL_DEPTH24_STENCIL8);
+	GBuffer& attachDepthTexture(int id, size_t width, size_t height);
 
 	GBuffer& finalize();
 

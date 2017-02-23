@@ -4,6 +4,7 @@ out vec4 outColor;
 
 in vec3 vColor;
 in vec2 vUV;
+in vec4 fragPosLightSpace;
 
 struct Light {
 	vec3 pos;
@@ -24,6 +25,19 @@ uniform vec3 cameraPos;
 uniform sampler2D defPos;
 uniform sampler2D defNormal;
 uniform sampler2D defDiffuseSpecular;
+uniform sampler2D shadowMap;
+
+float ShadowCalc(vec4 fragPosLightSpace){
+	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+
+	// Transforms NDC coordinates to the range [0,1]
+	projCoords = projCoords * 0.5f + 0.5f;
+	float closestDepth = texture(shadowMap, projCoords.xy).r;
+	float currentDepth = projCoords.z;
+	float shadow = currentDepth > closestDepth ? 1.0f : 0.0f;
+
+	return shadow;
+}
 
 void main() {
 	vec3 pos = texture(defPos, vUV).xyz;
@@ -45,9 +59,13 @@ void main() {
 		vec3 specularLight = spec * specular * lights[i].color;
 
 		// Ambient
-		vec3 ambientLight = lights[i].color * 0.1f;
+		vec3 ambientLight = diffuse * 0.1f;
 
-		lighting = (ambientLight + diffuseLight + specularLight) * diffuse;
+		// Shadow
+		float shadow = ShadowCalc(fragPosLightSpace);
+
+		lighting = (ambientLight + (1.0f - shadow) * (diffuseLight + specularLight)) * diffuse;
+		//lighting = (ambientLight + diffuseLight + specularLight) * diffuse;
 	}
 
 	outColor = vec4(lighting, 1);

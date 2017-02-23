@@ -56,6 +56,10 @@ private:
 	std::shared_ptr<Mesh> _skybox;
 
 	std::vector<std::shared_ptr<Entity>> _entities;
+	
+	// Shadowmap stuff
+	std::shared_ptr<ShaderProgram> _shadowmapProgram;
+	std::shared_ptr<GBuffer> _shadowmapFBO;
 
 	// Deferred stuff
 	std::shared_ptr<ShaderProgram> _deferredProgram;
