@@ -46,11 +46,11 @@ public:
 	template <typename T>
 	Mesh& uploadBufferData(const std::string& name, const T& data) {
 		try {
-			GLuint id = _extraBuffers[name];
+			GLuint id = _extraBuffers.at(name);
 			glBindBuffer(GL_ARRAY_BUFFER, id);
 			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(T), glm::value_ptr(data));
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		} catch (std::exception e) {
+		} catch (std::out_of_range e) { //-V565
 		}
 		return *this;
 	}
@@ -58,11 +58,11 @@ public:
 	template <typename T>
 	Mesh& uploadBufferArray(const std::string& name, const std::vector<T>& data) {
 		try {
-			GLuint id = _extraBuffers[name];
+			GLuint id = _extraBuffers.at(name);
 			glBindBuffer(GL_ARRAY_BUFFER, id);
 			glBufferSubData(GL_ARRAY_BUFFER, 0, data.size() * sizeof(T), &data[0]);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		} catch (std::exception e) {
+		} catch (std::out_of_range e) { //-V565
 		}
 		return *this;
 	}

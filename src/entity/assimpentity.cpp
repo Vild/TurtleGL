@@ -115,14 +115,14 @@ std::shared_ptr<Texture> AssimpEntity::_getTexture(const std::string& filename) 
 
 	if (path.data[0] == '*') {
 		unsigned int id = atoi(path.data + 1);
-		printf("Embedded texture: %d(%s)\n", id, path.data);
+		printf("Embedded texture: %u(%s)\n", id, path.data);
 		if (scene->mNumTextures < id)
 			return Engine::getInstance().getTextureManager()->getTexture(""); // Error texture
 		aiTexture* tex = scene->mTextures[id];
 
 		printf("Texture: \n");
-		printf("\tmWidth: %d\n", tex->mWidth);
-		printf("\tmHeight: %d\n", tex->mHeight);
+		printf("\tmWidth: %u\n", tex->mWidth);
+		printf("\tmHeight: %u\n", tex->mHeight);
 		printf("\tachFormatHint: %s\n", tex->achFormatHint);
 		printf("\tpcData: %p\n", (void*)tex->pcData);
 		if (tex->mHeight)

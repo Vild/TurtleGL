@@ -128,9 +128,9 @@ void Mesh::_loadObj(const std::string& fileName) {
 								}
 							}
 						}
+						fclose(mtl_file);
 					}
 					materials_Loaded = true;
-					fclose(mtl_file);
 				} else if (strcmp(line, "f") == 0) {
 					unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
 					int worked = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1],

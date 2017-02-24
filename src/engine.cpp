@@ -63,7 +63,7 @@ int Engine::run() {
 			case SDL_MOUSEBUTTONDOWN:
 				if (event.button.button == SDL_BUTTON_RIGHT) {
 					updateCamera = true;
-					SDL_ShowCursor(false);
+					SDL_ShowCursor(0);
 					SDL_WarpMouseInWindow(_window, _width / 2, _height / 2);
 				}
 				break;
@@ -71,7 +71,7 @@ int Engine::run() {
 			case SDL_MOUSEBUTTONUP:
 				if (event.button.button == SDL_BUTTON_RIGHT) {
 					updateCamera = false;
-					SDL_ShowCursor(true);
+					SDL_ShowCursor(1);
 				}
 				break;
 			case SDL_WINDOWEVENT:
@@ -191,6 +191,7 @@ void Engine::_initSDL() {
 void Engine::_initGL() {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
