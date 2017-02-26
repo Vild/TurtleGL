@@ -13,11 +13,8 @@
 #include "entity/box.hpp"
 #include "entity/earth.hpp"
 #include "entity/duck.hpp"
-<<<<<<< HEAD
 #include "entity/plane.hpp"
-=======
 #include "entity/triangle.hpp"
->>>>>>> origin/master
 
 Engine::~Engine() {
 	IMG_Quit();
@@ -197,11 +194,11 @@ int Engine::run() {
 		_shadowmapFBO->bind();
 		glViewport(0, 0, 1024, 1024);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		
+
 		for (std::shared_ptr<Entity> entity : _entities) {
 			entity->update(delta);
 		}
-		
+
 		_shadowmapProgram->bind();
 		for (std::shared_ptr<Entity> entity : _entities) {
 			entity->render();
@@ -212,7 +209,7 @@ int Engine::run() {
 		_deferred->bind();
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+
 		_baseProgram->bind();
 		_baseProgram->setUniform("vp", vp);
 		for (std::shared_ptr<Entity> entity : _entities) {
@@ -457,11 +454,8 @@ void Engine::_initMeshes() {
 	_entities.push_back(std::make_shared<Box>());
 	_entities.push_back(std::make_shared<Earth>());
 	_entities.push_back(std::make_shared<Duck>());
-<<<<<<< HEAD
 	_entities.push_back(std::make_shared<Plane>());
-=======
 	_entities.push_back(std::make_shared<Triangle>());
->>>>>>> origin/master
 	{
 		std::vector<Vertex> verticies = {
 			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//

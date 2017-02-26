@@ -4,10 +4,6 @@ out vec4 outColor;
 
 in vec3 vColor;
 in vec2 vUV;
-<<<<<<< HEAD
-=======
-in vec4 vFragPosLightSpace;
->>>>>>> origin/master
 
 struct Light {
 	vec3 pos;
@@ -31,22 +27,17 @@ uniform sampler2D defNormal;
 uniform sampler2D defDiffuseSpecular;
 uniform sampler2D shadowMap;
 
-<<<<<<< HEAD
-float ShadowCalc(vec4 fragPosLightSpace, vec3 normal, vec3 toLight){
-	// Division by w is needed for perspective so it's here for the future, it remains untouched by orthographic projection
-	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-	// Multiplication and addition by 0.5f to get coord into NDC, [-1,1] -> [0,1]
-	projCoords = (projCoords * vec3(0.5)) + vec3(0.5);
-=======
 uniform bool setting_enableAmbient;
 uniform bool setting_enableShadow;
 uniform bool setting_enableDiffuse;
 uniform bool setting_enableSpecular;
 uniform float setting_shininess = 64.0f;
 
-float ShadowCalc(vec4 vFragPosLightSpace){
-	vec3 projCoords = vFragPosLightSpace.xyz / vFragPosLightSpace.w;
->>>>>>> origin/master
+float ShadowCalc(vec4 fragPosLightSpace, vec3 normal, vec3 toLight){
+	// Division by w is needed for perspective so it's here for the future, it remains untouched by orthographic projection
+	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+	// Multiplication and addition by 0.5f to get coord into NDC, [-1,1] -> [0,1]
+	projCoords = (projCoords * vec3(0.5)) + vec3(0.5);
 
 	float closestDepth = texture(shadowMap, projCoords.xy).r;
 	float currentDepth = projCoords.z;
@@ -82,14 +73,7 @@ void main() {
 		vec3 ambientLight = diffuse * 0.1f;
 
 		// Shadow
-<<<<<<< HEAD
 		float shadow = ShadowCalc(fragPosLightSpace, normal, toLight);
-
-		//lighting = (ambientLight + diffuseLight + specularLight) * diffuse;
-
-		lighting = (ambientLight + (1.0 - shadow) * (diffuseLight + specularLight)) * diffuse;
-=======
-		float shadow = ShadowCalc(vFragPosLightSpace);
 
 		vec3 result = vec3(0);
 		if (setting_enableDiffuse)
@@ -102,7 +86,6 @@ void main() {
 			result += ambientLight;
 
 		lighting = result * diffuse;
->>>>>>> origin/master
 	}
 
 	outColor = vec4(lighting, 1);
