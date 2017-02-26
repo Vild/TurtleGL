@@ -23,7 +23,6 @@ Duck::~Duck() {}
 
 void Duck::update(float delta) {
 	_model *= glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0));
-
 	glm::mat4 model = glm::translate(glm::vec3(4, -4, 4)) * glm::scale(glm::vec3(0.1f)) * _model;
 	_mesh->uploadBufferData("m", model);
 }

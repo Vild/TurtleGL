@@ -8,7 +8,6 @@ class AssimpEntity : public Entity {
 public:
 	AssimpEntity(const std::string& filename, const std::string& normalTexture = "assets/textures/errorNormal.png");
 	virtual ~AssimpEntity();
-
 	virtual void render(GLenum drawMode = GL_TRIANGLES);
 
 protected:

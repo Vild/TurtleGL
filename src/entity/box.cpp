@@ -33,7 +33,6 @@ void Box::update(float delta) {
 	_baseMatrix *= glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0));
 
 	glm::mat4 movement = glm::mat4(1); // glm::translate(glm::vec3(sin(timeCounter) * 4, 0, sin(timeCounter) * 4 - cos(timeCounter) * 4));
-
 	for (int y = 0; y < 3; y++)
 		for (int i = 0; i < 9; i++)
 			_matrices[y * 9 + i] = (movement * glm::translate(glm::vec3{(i % 3) * 4, y * 4, (i / 3) * 4})) * _baseMatrix;

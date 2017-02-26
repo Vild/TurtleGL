@@ -16,7 +16,6 @@ public:
 
 	virtual void update(float delta);
 	virtual void render(GLenum drawMode = GL_TRIANGLES);
-
 protected:
 	unsigned int _drawCount = 1;
 	std::shared_ptr<Mesh> _mesh;

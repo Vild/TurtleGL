@@ -10,6 +10,7 @@
 #include "entity/box.hpp"
 #include "entity/earth.hpp"
 #include "entity/duck.hpp"
+#include "entity/plane.hpp"
 
 Engine::~Engine() {
 	IMG_Quit();
@@ -93,31 +94,32 @@ int Engine::run() {
 		glm::mat4 vp = _projection * _view;
 
 		// Render step 1 - Render everything to shadowmapFBO
-		glViewport(0, 0, 1024, 1024);
+
 		_shadowmapFBO->bind();
+		glViewport(0, 0, 1024, 1024);
 		glClear(GL_DEPTH_BUFFER_BIT);
-
-		_shadowmapProgram->bind();
-		for (std::shared_ptr<Entity> entity : _entities)
+		
+		for (std::shared_ptr<Entity> entity : _entities) {
 			entity->update(delta);
-
-		for (std::shared_ptr<Entity> entity : _entities)
+		}
+		
+		_shadowmapProgram->bind();
+		for (std::shared_ptr<Entity> entity : _entities) {
 			entity->render();
-
+		}
 		glViewport(0, 0, _width, _height);
 
 		// Render step 2 - Render everything to deferredFB
 		_deferred->bind();
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		
 		_baseProgram->bind();
-		/*for (std::shared_ptr<Entity> entity : _entities)
-			entity->update(delta);*/
-
 		_baseProgram->setUniform("vp", vp);
-		for (std::shared_ptr<Entity> entity : _entities)
+		for (std::shared_ptr<Entity> entity : _entities) {
 			entity->render();
+		}
+
 
 		// Render step 3 - Render to screen
 		_screen->bind();
@@ -277,6 +279,7 @@ void Engine::_initMeshes() {
 	_entities.push_back(std::make_shared<Box>());
 	_entities.push_back(std::make_shared<Earth>());
 	_entities.push_back(std::make_shared<Duck>());
+	_entities.push_back(std::make_shared<Plane>());
 	{
 		std::vector<Vertex> verticies = {
 			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//
@@ -308,12 +311,12 @@ void Engine::_initMeshes() {
 void Engine::_initGBuffers() {
 	_screen = std::make_shared<GBuffer>(0);
 	_shadowmapFBO = std::make_shared<GBuffer>();
-	_shadowmapFBO->bind().attachDepthTexture(0, 1024, 1024).finalize();
+	_shadowmapFBO->bind().attachDepthTexture(0, 1024, 1024);
 	_deferred = std::make_shared<GBuffer>();
 	_deferred->bind()
 		.attachTexture(0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 3) // Position
 		.attachTexture(1, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 3) // Normal
-		.attachTexture(2, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 4) // Diffuse + Specular
+		.attachTexture(2, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, 4) // Diffuse + Specular
 		.attachRenderBuffer(_width, _height)
 		.finalize();
 }
@@ -341,7 +344,7 @@ void Engine::_initLights() {
 	//	}
 
 	// One light for testing.
-	_lights[0].pos = glm::vec3(10, 10, 10);
+	_lights[0].pos = glm::vec3(0, 12, 0);
 	_lights[0].color = glm::vec3(1, 1, 1);
 	GLfloat constant = 1.0;
 	_lights[0].linear = 0.7;
@@ -350,9 +353,10 @@ void Engine::_initLights() {
 	_lights[0].radius = (-_lights[0].linear + sqrtf(_lights[0].linear * _lights[0].linear - 4 * _lights[0].quadratic * (constant - (256.0 / 5.0) * lightMax))) /
 											(2 * _lights[0].quadratic);
 
-	GLfloat near_plane = 0.1f, far_plane = 10.0f;
-	glm::mat4 lightProjection = glm::ortho(10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-	glm::mat4 lightView = glm::lookAt(-_lights[0].pos, glm::vec3(0, 0, 0), glm::vec3(0.0f, 1.0f, 0.0f));
+	GLfloat near_plane = 1.0f, far_plane = 50.0f;
+	//glm::mat4 lightProjection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 60.0f);
+	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+	glm::mat4 lightView = glm::lookAt(_lights[0].pos, glm::vec3(0,0,0), glm::vec3(1.0f, 0.0f, 0.0f));
 	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 	_shadowmapProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);
 	_deferredProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);

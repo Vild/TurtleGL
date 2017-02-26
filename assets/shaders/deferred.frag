@@ -4,7 +4,6 @@ out vec4 outColor;
 
 in vec3 vColor;
 in vec2 vUV;
-in vec4 fragPosLightSpace;
 
 struct Light {
 	vec3 pos;
@@ -21,20 +20,25 @@ layout (std140) uniform Lights {
 };
 
 uniform vec3 cameraPos;
+uniform mat4 lightSpaceMatrix;
 
 uniform sampler2D defPos;
 uniform sampler2D defNormal;
 uniform sampler2D defDiffuseSpecular;
 uniform sampler2D shadowMap;
 
-float ShadowCalc(vec4 fragPosLightSpace){
+float ShadowCalc(vec4 fragPosLightSpace, vec3 normal, vec3 toLight){
+	// Division by w is needed for perspective so it's here for the future, it remains untouched by orthographic projection
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+	// Multiplication and addition by 0.5f to get coord into NDC, [-1,1] -> [0,1]
+	projCoords = (projCoords * vec3(0.5)) + vec3(0.5);
 
-	// Transforms NDC coordinates to the range [0,1]
-	projCoords = projCoords * 0.5f + 0.5f;
 	float closestDepth = texture(shadowMap, projCoords.xy).r;
 	float currentDepth = projCoords.z;
-	float shadow = currentDepth > closestDepth ? 1.0f : 0.0f;
+	// Bias to remove shadow acne.
+	float bias = max(0.05f * (1.0 - dot(normal, toLight)), 0.005f);
+
+	float shadow = (currentDepth) > closestDepth ? 1.0 : 0.0;
 
 	return shadow;
 }
@@ -44,6 +48,8 @@ void main() {
 	vec3 normal = texture(defNormal, vUV).xyz;
 	vec3 diffuse = texture(defDiffuseSpecular, vUV).xyz;
 	float specular = texture(defDiffuseSpecular, vUV).w;
+	vec4 fragPosLightSpace = lightSpaceMatrix * vec4(pos, 1.0f);
+
 	vec3 lighting = vec3(0);
 
 	vec3 toCamera = normalize(cameraPos - pos);
@@ -62,10 +68,11 @@ void main() {
 		vec3 ambientLight = diffuse * 0.1f;
 
 		// Shadow
-		float shadow = ShadowCalc(fragPosLightSpace);
+		float shadow = ShadowCalc(fragPosLightSpace, normal, toLight);
 
-		lighting = (ambientLight + (1.0f - shadow) * (diffuseLight + specularLight)) * diffuse;
 		//lighting = (ambientLight + diffuseLight + specularLight) * diffuse;
+
+		lighting = (ambientLight + (1.0 - shadow) * (diffuseLight + specularLight)) * diffuse;
 	}
 
 	outColor = vec4(lighting, 1);
