@@ -20,6 +20,8 @@ out mat3 gTBN;
 uniform mat4 vp;
 uniform vec3 cameraPos;
 
+uniform bool setting_doBackFaceCulling;
+
 #define M_PI 3.1415
 
 mat3 calcTBN(mat3 normalMatrix, vec3 normal, int idx) {
@@ -34,17 +36,19 @@ mat3 calcTBN(mat3 normalMatrix, vec3 normal, int idx) {
 void main() {
 	int i;
 
-	vec3 p0 = (vM[0] * vec4(vPos[0], 1.0f)).xyz;
-	vec3 p1 = (vM[1] * vec4(vPos[1], 1.0f)).xyz;
-	vec3 p2 = (vM[2] * vec4(vPos[2], 1.0f)).xyz;
+	if (setting_doBackFaceCulling) {
+		vec3 p0 = (vM[0] * vec4(vPos[0], 1.0f)).xyz;
+		vec3 p1 = (vM[1] * vec4(vPos[1], 1.0f)).xyz;
+		vec3 p2 = (vM[2] * vec4(vPos[2], 1.0f)).xyz;
 
-	vec3 edge0 = p1 - p0;
-	vec3 edge1 = p2 - p0;
+		vec3 edge0 = p1 - p0;
+		vec3 edge1 = p2 - p0;
 
-	vec3 triangleNormal = cross(edge0, edge1);
+		vec3 triangleNormal = cross(edge0, edge1);
 
-	if (dot(normalize(p0 - cameraPos), triangleNormal) >= 0)
-		return;
+		if (dot(normalize(p0 - cameraPos), triangleNormal) >= 0)
+			return;
+	}
 
 	for (i = 0; i < 3; i++) {
 		vec4 pos = vM[i] * vec4(vPos[i], 1.0f);

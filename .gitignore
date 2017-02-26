@@ -27,3 +27,4 @@ windows/
 project.log
 project.tasks
 strace_out
+imgui.ini

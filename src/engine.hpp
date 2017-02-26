@@ -31,7 +31,7 @@ public:
 private:
 	uint32_t _width = 1280;
 	uint32_t _height = 720;
-	bool _vsync = true;
+	bool _vsync = false;
 
 	float _speed = 5.0f;
 	float _fov = 80.0f;
@@ -88,12 +88,27 @@ private:
 	std::shared_ptr<Mesh> _lightBulb;
 	std::vector<glm::mat4> _lightsMatrix;
 
+	// Settings (OpenGL)
+	bool _setting_ogl_doBackFaceCulling = true;
+	bool _setting_ogl_renderLights = true;
+
+	// Settings (Shaders)
+	bool _setting_base_doBackFaceCulling = true;
+	float _setting_base_defaultSpecular = 0.5f;
+
+	bool _setting_deferred_enableAmbient = true;
+	bool _setting_deferred_enableShadow = true;
+	bool _setting_deferred_enableDiffuse = true;
+	bool _setting_deferred_enableSpecular = true;
+	float _setting_deferred_shininess = 64.0f;
+
 	Engine() {}
 	virtual ~Engine();
 
 	void _init();
 	void _initSDL();
 	void _initGL();
+	void _initImGui();
 	void _initShaders();
 	void _initMeshes();
 	void _initGBuffers();

@@ -13,6 +13,7 @@ in mat3 gTBN;
 
 uniform sampler2D diffuseTexture;
 uniform sampler2D normalTexture;
+uniform float setting_defaultSpecular;
 
 void main() {
 	defPos = gPos;
@@ -21,5 +22,5 @@ void main() {
 	defNormal = normalize(gTBN * normal);
 
 	defDiffuseSpecular.rgb = gColor * texture(diffuseTexture, gUV).rgb;
-	defDiffuseSpecular.a = 0.5f;
+	defDiffuseSpecular.a = setting_defaultSpecular;
 }

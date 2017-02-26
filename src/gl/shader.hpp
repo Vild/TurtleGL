@@ -118,6 +118,17 @@ public:
 		return *this;
 	}
 
+	ShaderProgram& setUniform(const std::string& name, const bool& value) {
+		try {
+			GLint i = value;
+			_glUniform(_uniform.at(name), 1, &i);
+		} catch (std::out_of_range& e) { //-V565
+																		 // std::cerr << "Uniform is missing! Did you forget to use that variable in that shader?: " << name << std::endl;
+			// throw ShaderProgramException(std::string("Uniform is missing! Did you forget to use that variable in that shader?: ") + name);
+		}
+		return *this;
+	}
+
 	template <typename T>
 	ShaderProgram& setUniformArray(const std::string& name, const std::vector<T>& values) {
 		try {

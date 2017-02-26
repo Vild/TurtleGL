@@ -27,6 +27,12 @@ uniform sampler2D defNormal;
 uniform sampler2D defDiffuseSpecular;
 uniform sampler2D shadowMap;
 
+uniform bool setting_enableAmbient;
+uniform bool setting_enableShadow;
+uniform bool setting_enableDiffuse;
+uniform bool setting_enableSpecular;
+uniform float setting_shininess = 64.0f;
+
 float ShadowCalc(vec4 vFragPosLightSpace){
 	vec3 projCoords = vFragPosLightSpace.xyz / vFragPosLightSpace.w;
 
@@ -47,7 +53,6 @@ void main() {
 	vec3 lighting = vec3(0);
 
 	vec3 toCamera = normalize(cameraPos - pos);
-	const float shininess = 64.0f;
 	for (int i = 0; i < LIGHT_COUNT; i++) {
 		// Diffuse
 		vec3 toLight = normalize(lights[i].pos - pos);
@@ -55,7 +60,7 @@ void main() {
 
 		// Specular (Blinn-phong)
 		vec3 halfwayDir = normalize(toLight + toCamera);
-		float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
+		float spec = pow(max(dot(normal, halfwayDir), 0.0), setting_shininess);
 		vec3 specularLight = spec * specular * lights[i].color;
 
 		// Ambient
@@ -64,8 +69,17 @@ void main() {
 		// Shadow
 		float shadow = ShadowCalc(vFragPosLightSpace);
 
-		lighting = (ambientLight + (1.0f - shadow) * (diffuseLight + specularLight)) * diffuse;
-		//lighting = (ambientLight + diffuseLight + specularLight) * diffuse;
+		vec3 result = vec3(0);
+		if (setting_enableDiffuse)
+			result += diffuseLight;
+		if (setting_enableSpecular)
+			result += specularLight;
+		if (setting_enableShadow)
+			result *= 1.0f - shadow;
+		if (setting_enableAmbient)
+			result += ambientLight;
+
+		lighting = result * diffuse;
 	}
 
 	outColor = vec4(lighting, 1);
