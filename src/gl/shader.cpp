@@ -112,7 +112,7 @@ void ShaderProgram::finalize() {
 		glGetProgramInfoLog(_program, len, &len, errorLog.data());
 
 		char buf[0x1000];
-		snprintf(buf, sizeof(buf), "Linking failed (%d):\n%s", _program, errorLog.data());
+		snprintf(buf, sizeof(buf), "Linking failed (%u):\n%s", _program, errorLog.data());
 		throw ShaderUnitException(std::string(buf));
 	}
 }

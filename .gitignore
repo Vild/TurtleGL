@@ -19,9 +19,17 @@ CMakeFiles/
 turtlegl.dir/
 *turtlegl.VC.db
 *turtlegl.VC.VC.opendb
+<<<<<<< HEAD
 *engine.cpp~RF192eafaf.TMP
 engine.i-22ca9866
+=======
+*.TMP
+>>>>>>> origin/master
 Debug/
 *.sln
 windows/
 .vscode/
+project.log
+project.tasks
+strace_out
+imgui.ini

@@ -12,6 +12,7 @@ out vec3 vPos;
 out vec3 vNormal;
 out vec3 vColor;
 out vec2 vUV;
+<<<<<<< HEAD
 out mat3 vTBN;
 
 uniform mat4 vp;
@@ -36,4 +37,16 @@ void main() {
 	vTBN = calcTBN(normalMatrix, vertNormal);
 
 	gl_Position = vp * pos;
+=======
+out vec3 vTangent;
+out mat4 vM;
+
+void main() {
+	vPos = vertPos;
+	vNormal = vertNormal;
+	vColor = vertColor;
+	vUV = vertUV;
+	vTangent = vertTangent;
+	vM = m;
+>>>>>>> origin/master
 }

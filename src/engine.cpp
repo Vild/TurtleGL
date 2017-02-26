@@ -2,6 +2,9 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "engine.hpp"
 
+#include "lib/imgui.h"
+#include "lib/imgui_impl_sdl_gl3.h"
+
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_interpolation.hpp>
@@ -10,10 +13,16 @@
 #include "entity/box.hpp"
 #include "entity/earth.hpp"
 #include "entity/duck.hpp"
+<<<<<<< HEAD
 #include "entity/plane.hpp"
+=======
+#include "entity/triangle.hpp"
+>>>>>>> origin/master
 
 Engine::~Engine() {
 	IMG_Quit();
+
+	ImGui_ImplSdlGL3_Shutdown();
 
 	SDL_GL_DeleteContext(_context);
 	SDL_DestroyWindow(_window);
@@ -26,12 +35,15 @@ int Engine::run() {
 	int fps = 0;
 	uint32_t lastTime = SDL_GetTicks();
 
+	bool showSettings = false;
+
 	_resolutionChanged();
 	_updateMovement(0, false);
 	bool updateCamera = false;
 	while (!_quit) {
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
+			ImGui_ImplSdlGL3_ProcessEvent(&event);
 			switch (event.type) {
 			case SDL_QUIT:
 				_quit = true;
@@ -64,7 +76,7 @@ int Engine::run() {
 			case SDL_MOUSEBUTTONDOWN:
 				if (event.button.button == SDL_BUTTON_RIGHT) {
 					updateCamera = true;
-					SDL_ShowCursor(false);
+					SDL_ShowCursor(0);
 					SDL_WarpMouseInWindow(_window, _width / 2, _height / 2);
 				}
 				break;
@@ -72,7 +84,7 @@ int Engine::run() {
 			case SDL_MOUSEBUTTONUP:
 				if (event.button.button == SDL_BUTTON_RIGHT) {
 					updateCamera = false;
-					SDL_ShowCursor(true);
+					SDL_ShowCursor(1);
 				}
 				break;
 			case SDL_WINDOWEVENT:
@@ -85,6 +97,93 @@ int Engine::run() {
 			default:
 				break;
 			}
+		}
+		ImGui_ImplSdlGL3_NewFrame(_window);
+
+		{
+			ImGui::SetNextWindowPos(ImVec2(8, 8), ImGuiSetCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiSetCond_FirstUseEver);
+			ImGui::Begin("Info panel", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			if (!showSettings && ImGui::Button("Show settings"))
+				showSettings = !showSettings;
+			ImGui::End();
+		}
+
+		if (showSettings) {
+			ImGui::SetNextWindowPos(ImVec2(8, 48), ImGuiSetCond_Once);
+			ImGui::SetNextWindowSize(ImVec2(40, 80), ImGuiSetCond_FirstUseEver);
+			ImGui::Begin("Settings Window", &showSettings);
+			if (ImGui::CollapsingHeader("OpenGL")) {
+				if (ImGui::Checkbox("Backface culling", &_setting_ogl_doBackFaceCulling)) {
+					if (_setting_ogl_doBackFaceCulling)
+						glEnable(GL_CULL_FACE);
+					else
+						glDisable(GL_CULL_FACE);
+				}
+				ImGui::Checkbox("Render lights", &_setting_ogl_renderLights);
+			}
+
+			if (ImGui::CollapsingHeader("Base Program")) {
+				_baseProgram->bind();
+				if (ImGui::Checkbox("Geometry Backface Culling", &_setting_base_doBackFaceCulling))
+					_baseProgram->setUniform("setting_doBackFaceCulling", _setting_base_doBackFaceCulling);
+
+				ImGui::Separator();
+
+				if (ImGui::DragFloat("Default Specular", &_setting_base_defaultSpecular, 0.01, 0, 1))
+					_baseProgram->setUniform("setting_defaultSpecular", _setting_base_defaultSpecular);
+			}
+
+			if (ImGui::CollapsingHeader("Deferred Program")) {
+				_deferredProgram->bind();
+				if (ImGui::Checkbox("Ambient", &_setting_deferred_enableAmbient))
+					_deferredProgram->setUniform("setting_enableAmbient", _setting_deferred_enableAmbient);
+				if (ImGui::Checkbox("Shadow", &_setting_deferred_enableShadow))
+					_deferredProgram->setUniform("setting_enableShadow", _setting_deferred_enableShadow);
+				if (ImGui::Checkbox("Diffuse", &_setting_deferred_enableDiffuse))
+					_deferredProgram->setUniform("setting_enableDiffuse", _setting_deferred_enableDiffuse);
+				if (ImGui::Checkbox("Specular", &_setting_deferred_enableSpecular))
+					_deferredProgram->setUniform("setting_enableSpecular", _setting_deferred_enableSpecular);
+
+				ImGui::Separator();
+
+				if (ImGui::DragFloat("Shininess", &_setting_deferred_shininess, 1, 0, 256))
+					_deferredProgram->setUniform("setting_shininess", _setting_deferred_shininess);
+			}
+
+			ImGui::Separator();
+
+			if (ImGui::CollapsingHeader("Lights")) {
+				ImGui::Columns(2);
+				for (int i = 0; i < LIGHT_COUNT; i++) {
+					const ImVec4 color = ImColor(_lights[i].color.x, _lights[i].color.y, _lights[i].color.z, 1.0);
+
+					ImGui::Text((std::string("Light #") + std::to_string(i)).c_str());
+					ImGui::NextColumn();
+
+					ImGui::PushStyleColor(ImGuiCol_Button, color);
+					if (ImGui::ColorButton(color))
+						ImGui::OpenPopup((std::string("color") + std::to_string(i)).c_str());
+					ImGui::PopStyleColor();
+
+					if (ImGui::BeginPopup((std::string("color") + std::to_string(i)).c_str())) {
+						ImGui::Text("Edit lights color");
+						if (ImGui::ColorEdit3("##edit", (float*)&_lights[i].color))
+							_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);
+
+						if (ImGui::Button("Close"))
+							ImGui::CloseCurrentPopup();
+
+						ImGui::EndPopup();
+					}
+
+					ImGui::NextColumn();
+				}
+
+				ImGui::Columns(1);
+			}
+			ImGui::End();
 		}
 
 		uint32_t curTime = SDL_GetTicks();
@@ -144,22 +243,27 @@ int Engine::run() {
 		_screen->bind();
 
 		// Render step 3.2 - Render lightsources as cubes
-		_lightProgram->bind();
-		_lightBulb->uploadBufferArray("m", _lightsMatrix);
-		_lightProgram->setUniform("vp", vp);
-		_lightBulb->render(_lightsMatrix.size(), GL_LINES);
+		if (_setting_ogl_renderLights) {
+			_lightProgram->bind();
+			_lightBulb->uploadBufferArray("m", _lightsMatrix);
+			_lightProgram->setUniform("vp", vp);
+			_lightBulb->render(_lightsMatrix.size(), GL_LINES);
+		}
 
 		_skyboxProgram->bind();
 		_skybox->getMaterial().map_Kd->bind(0);
 		{
-			glDisable(GL_CULL_FACE);
+			if (_setting_ogl_doBackFaceCulling)
+				glDisable(GL_CULL_FACE);
 			glDepthFunc(GL_LEQUAL);
 			glm::mat4 skyboxVP = _projection * glm::extractMatrixRotation(_view); // Never move the skybox only rotate
 			_skyboxProgram->setUniform("vp", skyboxVP);
 			_skybox->render();
-			glEnable(GL_CULL_FACE);
+			if (_setting_ogl_doBackFaceCulling)
+				glEnable(GL_CULL_FACE);
 		}
 
+		ImGui::Render();
 		fps++;
 		SDL_GL_SwapWindow(_window);
 	}
@@ -173,6 +277,7 @@ std::shared_ptr<TextureManager> Engine::getTextureManager() {
 void Engine::_init() {
 	_initSDL();
 	_initGL();
+	_initImGui();
 	_textureManager = std::make_shared<TextureManager>(); // TODO: Move to own function?
 	_initShaders();
 	_initMeshes();
@@ -193,6 +298,7 @@ void Engine::_initSDL() {
 void Engine::_initGL() {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -213,6 +319,58 @@ void Engine::_initGL() {
 		throw "Failed to load SDL_Image";
 }
 
+void Engine::_initImGui() {
+	ImGui_ImplSdlGL3_Init(_window);
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->AddFontFromFileTTF("assets/fonts/DroidSans.ttf", 18.0f);
+
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.Colors[ImGuiCol_Text] = ImVec4(0.83f, 0.95f, 0.95f, 1.00f);
+	style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.39f, 0.80f, 0.80f, 1.00f);
+	style.Colors[ImGuiCol_WindowBg] = ImVec4(0.09f, 0.27f, 0.27f, 0.87f);
+	style.Colors[ImGuiCol_ChildWindowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	style.Colors[ImGuiCol_PopupBg] = ImVec4(0.05f, 0.05f, 0.10f, 0.90f);
+	style.Colors[ImGuiCol_Border] = ImVec4(0.25f, 0.75f, 0.75f, 1.00f);
+	style.Colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+	style.Colors[ImGuiCol_FrameBg] = ImVec4(0.18f, 0.55f, 0.55f, 0.67f);
+	style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.25f, 0.75f, 0.75f, 0.67f);
+	style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.16f, 0.49f, 0.49f, 0.45f);
+	style.Colors[ImGuiCol_TitleBg] = ImVec4(0.16f, 0.49f, 0.49f, 1.00f);
+	style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.16f, 0.49f, 0.49f, 0.60f);
+	style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.18f, 0.56f, 0.56f, 1.00f);
+	style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.16f, 0.47f, 0.47f, 1.00f);
+	style.Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.11f, 0.33f, 0.33f, 1.00f);
+	style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.14f, 0.42f, 0.42f, 1.00f);
+	style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.33f, 0.78f, 0.78f, 0.67f);
+	style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.33f, 0.78f, 0.78f, 1.00f);
+	style.Colors[ImGuiCol_ComboBg] = ImVec4(0.18f, 0.55f, 0.55f, 0.99f);
+	style.Colors[ImGuiCol_CheckMark] = ImVec4(0.44f, 0.81f, 0.81f, 1.00f);
+	style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.33f, 0.78f, 0.78f, 0.60f);
+	style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.33f, 0.78f, 0.78f, 1.00f);
+	style.Colors[ImGuiCol_Button] = ImVec4(0.18f, 0.55f, 0.55f, 1.00f);
+	style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.33f, 0.78f, 0.78f, 0.67f);
+	style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.33f, 0.78f, 0.78f, 1.00f);
+	style.Colors[ImGuiCol_Header] = ImVec4(0.15f, 0.44f, 0.44f, 1.00f);
+	style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.33f, 0.78f, 0.78f, 0.67f);
+	style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.33f, 0.78f, 0.78f, 1.00f);
+	style.Colors[ImGuiCol_Column] = ImVec4(0.25f, 0.74f, 0.74f, 0.40f);
+	style.Colors[ImGuiCol_ColumnHovered] = ImVec4(0.25f, 0.74f, 0.74f, 0.60f);
+	style.Colors[ImGuiCol_ColumnActive] = ImVec4(0.25f, 0.74f, 0.74f, 1.00f);
+	style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.20f, 0.61f, 0.61f, 1.00f);
+	style.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.53f, 0.84f, 0.84f, 0.67f);
+	style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.53f, 0.84f, 0.84f, 1.00f);
+	style.Colors[ImGuiCol_CloseButton] = ImVec4(0.22f, 0.67f, 0.67f, 1.00f);
+	style.Colors[ImGuiCol_CloseButtonHovered] = ImVec4(0.53f, 0.84f, 0.84f, 0.40f);
+	style.Colors[ImGuiCol_CloseButtonActive] = ImVec4(0.53f, 0.84f, 0.84f, 1.00f);
+	style.Colors[ImGuiCol_PlotLines] = ImVec4(0.53f, 0.84f, 0.84f, 1.00f);
+	style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.00f, 0.84f, 0.84f, 1.00f);
+	style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.53f, 0.84f, 0.84f, 1.00f);
+	style.Colors[ImGuiCol_PlotHistogramHovered] = ImVec4(0.00f, 0.84f, 0.84f, 1.00f);
+	style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.13f, 0.40f, 0.40f, 1.00f);
+	style.Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(0.09f, 0.27f, 0.27f, 0.67f);
+}
+
 void Engine::_initShaders() {
 	{
 		_shadowmapProgram = std::make_shared<ShaderProgram>();
@@ -224,10 +382,20 @@ void Engine::_initShaders() {
 	{
 		_baseProgram = std::make_shared<ShaderProgram>();
 		_baseProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
+			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.geom", ShaderType::geometry))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.frag", ShaderType::fragment))
 			.finalize();
-		_baseProgram->bind().addUniform("vp").addUniform("diffuseTexture").addUniform("normalTexture");
-		_baseProgram->setUniform("diffuseTexture", 0).setUniform("normalTexture", 1);
+		_baseProgram->bind()
+			.addUniform("vp")
+			.addUniform("cameraPos")
+			.addUniform("diffuseTexture")
+			.addUniform("normalTexture")
+			.addUniform("setting_doBackFaceCulling")
+			.addUniform("setting_defaultSpecular");
+		_baseProgram->setUniform("diffuseTexture", 0)
+			.setUniform("normalTexture", 1)
+			.setUniform("setting_doBackFaceCulling", _setting_base_doBackFaceCulling)
+			.setUniform("setting_defaultSpecular", _setting_base_defaultSpecular);
 	}
 	{
 		_skyboxProgram = std::make_shared<ShaderProgram>();
@@ -239,7 +407,7 @@ void Engine::_initShaders() {
 	}
 	{
 		_deferredProgram = std::make_shared<ShaderProgram>();
-		_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
+		_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.frag", ShaderType::fragment))
 			.finalize();
 		_deferredProgram->bind()
@@ -250,8 +418,18 @@ void Engine::_initShaders() {
 			.addUniform("defDiffuseSpecular")
 			.addUniform("shadowMap")
 			.addUniform("cameraPos")
-			.addUniform("normalTexture");
-		_deferredProgram->setUniform("normalTexture", 1);
+			.addUniform("normalTexture")
+			.addUniform("setting_enableAmbient")
+			.addUniform("setting_enableShadow")
+			.addUniform("setting_enableDiffuse")
+			.addUniform("setting_enableSpecular")
+			.addUniform("setting_shininess");
+		_deferredProgram->setUniform("normalTexture", 1)
+			.setUniform("setting_enableAmbient", _setting_deferred_enableAmbient)
+			.setUniform("setting_enableShadow", _setting_deferred_enableShadow)
+			.setUniform("setting_enableDiffuse", _setting_deferred_enableDiffuse)
+			.setUniform("setting_enableSpecular", _setting_deferred_enableSpecular)
+			.setUniform("setting_shininess", _setting_deferred_shininess);
 	}
 }
 
@@ -279,7 +457,11 @@ void Engine::_initMeshes() {
 	_entities.push_back(std::make_shared<Box>());
 	_entities.push_back(std::make_shared<Earth>());
 	_entities.push_back(std::make_shared<Duck>());
+<<<<<<< HEAD
 	_entities.push_back(std::make_shared<Plane>());
+=======
+	_entities.push_back(std::make_shared<Triangle>());
+>>>>>>> origin/master
 	{
 		std::vector<Vertex> verticies = {
 			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//
@@ -440,5 +622,6 @@ void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't ca
 		_position -= glm::vec3(0, 1, 0) * delta * _speed;
 
 	_view = glm::lookAt(_position, _position + forward, up);
+	_baseProgram->bind().setUniform("cameraPos", _position);
 	_deferredProgram->bind().setUniform("cameraPos", _position);
 }
