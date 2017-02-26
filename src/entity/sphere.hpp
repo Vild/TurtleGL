@@ -13,7 +13,8 @@ public:
 
 	virtual void update(float delta);
 	virtual void render(GLenum drawMode = GL_TRIANGLES);
-	virtual void move(glm::vec3 pos) {};
+	virtual void move(glm::vec3 pos){};
+
 private:
 	glm::mat4 _model;
 };

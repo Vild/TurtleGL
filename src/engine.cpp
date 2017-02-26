@@ -171,6 +171,13 @@ int Engine::run() {
 							_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);
 							for (int i = 0; i < LIGHT_COUNT; i++)
 								_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(0.5f));
+
+							GLfloat near_plane = 1.0f, far_plane = 50.0f;
+							glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+							glm::mat4 lightView = glm::lookAt(_lights[0].pos, glm::vec3(0, 0, 0), glm::vec3(1.0f, 0.0f, 0.0f));
+							glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+							_shadowmapProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);
+							_deferredProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);
 						}
 
 						if (ImGui::Button("Close"))
@@ -219,7 +226,6 @@ int Engine::run() {
 		for (std::shared_ptr<Entity> entity : _entities) {
 			entity->render();
 		}
-
 
 		// Render step 3 - Render to screen
 		_screen->bind();
@@ -494,8 +500,8 @@ void Engine::_initGBuffers() {
 	_shadowmapFBO->bind().attachDepthTexture(0, 1024, 1024);
 	_deferred = std::make_shared<GBuffer>();
 	_deferred->bind()
-		.attachTexture(0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 3) // Position
-		.attachTexture(1, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 3) // Normal
+		.attachTexture(0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 3)	// Position
+		.attachTexture(1, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 3)	// Normal
 		.attachTexture(2, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, 4) // Diffuse + Specular
 		.attachRenderBuffer(_width, _height)
 		.finalize();
@@ -534,9 +540,9 @@ void Engine::_initLights() {
 											(2 * _lights[0].quadratic);
 
 	GLfloat near_plane = 1.0f, far_plane = 50.0f;
-	//glm::mat4 lightProjection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 60.0f);
+	// glm::mat4 lightProjection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 60.0f);
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-	glm::mat4 lightView = glm::lookAt(_lights[0].pos, glm::vec3(0,0,0), glm::vec3(1.0f, 0.0f, 0.0f));
+	glm::mat4 lightView = glm::lookAt(_lights[0].pos, glm::vec3(0, 0, 0), glm::vec3(1.0f, 0.0f, 0.0f));
 	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 	_shadowmapProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);
 	_deferredProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);

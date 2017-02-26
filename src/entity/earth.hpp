@@ -10,6 +10,7 @@ public:
 	virtual ~Earth();
 
 	virtual void update(float delta);
+
 private:
 	glm::mat4 _model;
 };
