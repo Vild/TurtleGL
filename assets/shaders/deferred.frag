@@ -4,7 +4,7 @@ out vec4 outColor;
 
 in vec3 vColor;
 in vec2 vUV;
-in vec4 fragPosLightSpace;
+in vec4 vFragPosLightSpace;
 
 struct Light {
 	vec3 pos;
@@ -27,8 +27,8 @@ uniform sampler2D defNormal;
 uniform sampler2D defDiffuseSpecular;
 uniform sampler2D shadowMap;
 
-float ShadowCalc(vec4 fragPosLightSpace){
-	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+float ShadowCalc(vec4 vFragPosLightSpace){
+	vec3 projCoords = vFragPosLightSpace.xyz / vFragPosLightSpace.w;
 
 	// Transforms NDC coordinates to the range [0,1]
 	projCoords = projCoords * 0.5f + 0.5f;
@@ -62,7 +62,7 @@ void main() {
 		vec3 ambientLight = diffuse * 0.1f;
 
 		// Shadow
-		float shadow = ShadowCalc(fragPosLightSpace);
+		float shadow = ShadowCalc(vFragPosLightSpace);
 
 		lighting = (ambientLight + (1.0f - shadow) * (diffuseLight + specularLight)) * diffuse;
 		//lighting = (ambientLight + diffuseLight + specularLight) * diffuse;

@@ -10,6 +10,7 @@
 #include "entity/box.hpp"
 #include "entity/earth.hpp"
 #include "entity/duck.hpp"
+#include "entity/triangle.hpp"
 
 Engine::~Engine() {
 	IMG_Quit();
@@ -223,9 +224,10 @@ void Engine::_initShaders() {
 	{
 		_baseProgram = std::make_shared<ShaderProgram>();
 		_baseProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
+			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.geom", ShaderType::geometry))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.frag", ShaderType::fragment))
 			.finalize();
-		_baseProgram->bind().addUniform("vp").addUniform("diffuseTexture").addUniform("normalTexture");
+		_baseProgram->bind().addUniform("vp").addUniform("cameraPos").addUniform("diffuseTexture").addUniform("normalTexture");
 		_baseProgram->setUniform("diffuseTexture", 0).setUniform("normalTexture", 1);
 	}
 	{
@@ -238,7 +240,7 @@ void Engine::_initShaders() {
 	}
 	{
 		_deferredProgram = std::make_shared<ShaderProgram>();
-		_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
+		_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.frag", ShaderType::fragment))
 			.finalize();
 		_deferredProgram->bind()
@@ -278,6 +280,7 @@ void Engine::_initMeshes() {
 	_entities.push_back(std::make_shared<Box>());
 	_entities.push_back(std::make_shared<Earth>());
 	_entities.push_back(std::make_shared<Duck>());
+	_entities.push_back(std::make_shared<Triangle>());
 	{
 		std::vector<Vertex> verticies = {
 			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//
@@ -437,5 +440,6 @@ void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't ca
 		_position -= glm::vec3(0, 1, 0) * delta * _speed;
 
 	_view = glm::lookAt(_position, _position + forward, up);
+	_baseProgram->bind().setUniform("cameraPos", _position);
 	_deferredProgram->bind().setUniform("cameraPos", _position);
 }

@@ -10,14 +10,14 @@
 
 #include "../engine.hpp"
 
-bool hasVertexColors(aiMesh* mesh, unsigned int pIndex) {
+static bool hasVertexColors(aiMesh* mesh, unsigned int pIndex) {
 	if (pIndex >= AI_MAX_NUMBER_OF_COLOR_SETS)
 		return false;
 	else
 		return mesh->mColors[pIndex] != NULL && mesh->mNumVertices > 0;
 }
 
-bool hasTextureCoords(aiMesh* mesh, unsigned int pIndex) {
+static bool hasTextureCoords(aiMesh* mesh, unsigned int pIndex) {
 	if (pIndex >= AI_MAX_NUMBER_OF_TEXTURECOORDS)
 		return false;
 	else
@@ -72,10 +72,12 @@ std::shared_ptr<Mesh> AssimpEntity::_getModel(const std::string& filename) {
 				aiVector3D uv = mesh->mTextureCoords[0][j];
 				vertex.uv = glm::vec2{uv.x, uv.y};
 			} else
-				vertex.uv = glm::vec2{1.f, 1.f};
+				vertex.uv = glm::vec2{j & 2, (j / 2) % 2};
 
-			p = mesh->mTangents[j];
-			vertex.tangent = glm::vec3{p.x, p.y, p.z};
+			if (mesh->mTangents) {
+				p = mesh->mTangents[j];
+				vertex.tangent = glm::vec3{p.x, p.y, p.z};
+			}
 
 			vertices.push_back(vertex);
 		}
