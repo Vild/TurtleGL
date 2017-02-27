@@ -37,6 +37,7 @@ int Engine::run() {
 	bool updateCamera = false;
 	while (!_quit) {
 		SDL_Event event;
+		ImGuiIO& io = ImGui::GetIO();
 		while (SDL_PollEvent(&event)) {
 			ImGui_ImplSdlGL3_ProcessEvent(&event);
 			switch (event.type) {
@@ -44,6 +45,8 @@ int Engine::run() {
 				_quit = true;
 				break;
 			case SDL_KEYDOWN:
+				if (io.WantCaptureKeyboard)
+					break;
 				switch (event.key.keysym.sym) {
 				case SDLK_ESCAPE:
 					_quit = true;
@@ -59,6 +62,8 @@ int Engine::run() {
 				break;
 
 			case SDL_KEYUP:
+				if (io.WantCaptureKeyboard)
+					break;
 				switch (event.key.keysym.sym) {
 				case SDLK_LSHIFT:
 				case SDLK_RSHIFT:
@@ -69,6 +74,8 @@ int Engine::run() {
 				}
 
 			case SDL_MOUSEBUTTONDOWN:
+				if (io.WantCaptureMouse)
+					break;
 				if (event.button.button == SDL_BUTTON_RIGHT) {
 					updateCamera = true;
 					SDL_ShowCursor(0);
@@ -77,6 +84,8 @@ int Engine::run() {
 				break;
 
 			case SDL_MOUSEBUTTONUP:
+				if (io.WantCaptureMouse)
+					break;
 				if (event.button.button == SDL_BUTTON_RIGHT) {
 					updateCamera = false;
 					SDL_ShowCursor(1);
@@ -216,7 +225,7 @@ int Engine::run() {
 			entity->update(delta);
 
 		// Uncomment to show shadowmap on Plane entitiy
-		//std::dynamic_pointer_cast<AssimpEntity>(_entities[3])->setTexture(_shadowmapFBO->getAttachments()[0].texture);
+		// std::dynamic_pointer_cast<AssimpEntity>(_entities[3])->setTexture(_shadowmapFBO->getAttachments()[0].texture);
 
 		_shadowmapProgram->bind();
 		for (std::shared_ptr<Entity> entity : _entities)
@@ -616,6 +625,10 @@ void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't ca
 		_pitch += mspeed * y;
 		_pitch = glm::clamp(_pitch, (float)-M_PI / 2, (float)M_PI / 2);
 	}
+	ImGuiIO& io = ImGui::GetIO();
+	if (io.WantCaptureKeyboard)
+		return;
+
 	glm::vec3 forward(cos(_pitch) * sin(_yaw), sin(_pitch), cos(_pitch) * cos(_yaw));
 	glm::vec3 right(sin(_yaw - M_PI / 2.0f), 0, cos(_yaw - M_PI / 2.0f));
 	glm::vec3 up = glm::cross(right, forward);
