@@ -31,13 +31,13 @@ uniform bool setting_enableAmbient;
 uniform bool setting_enableShadow;
 uniform bool setting_enableDiffuse;
 uniform bool setting_enableSpecular;
-uniform float setting_shininess = 64.0f;
+uniform float setting_shininess;
 
 float ShadowCalc(vec4 fragPosLightSpace, vec3 normal, vec3 toLight){
 	// Division by w is needed for perspective so it's here for the future, it remains untouched by orthographic projection
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 	// Multiplication and addition by 0.5f to get coord into NDC, [-1,1] -> [0,1]
-	projCoords = (projCoords * vec3(0.5)) + vec3(0.5);
+	projCoords = projCoords * 0.5 + 0.5;
 
 	float closestDepth = texture(shadowMap, projCoords.xy).r;
 	float currentDepth = projCoords.z;
@@ -81,7 +81,7 @@ void main() {
 		if (setting_enableSpecular)
 			result += specularLight;
 		if (setting_enableShadow)
-			result *= 1.0f - shadow;
+			result *= 1.0f - shadow; // *= because: (1.0 - shadow) * (diffuse + specular)
 		if (setting_enableAmbient)
 			result += ambientLight;
 

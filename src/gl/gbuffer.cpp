@@ -2,6 +2,8 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "gbuffer.hpp"
 
+#include <iostream>
+
 GBuffer::GBuffer() {
 	glGenFramebuffers(1, &_fb);
 	_renderBuffer = 0;
@@ -56,8 +58,8 @@ GBuffer& GBuffer::attachDepthTexture(int id, size_t width, size_t height) {
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
@@ -79,9 +81,17 @@ GBuffer& GBuffer::attachRenderBuffer(size_t width, size_t height, GLenum format)
 
 GBuffer& GBuffer::finalize() {
 	std::vector<GLenum> buffers;
-	for (size_t i = 0; i < _attachments.size(); i++)
-		buffers.push_back(GL_COLOR_ATTACHMENT0 + _attachments[i].id);
-	glDrawBuffers(buffers.size(), &buffers[0]);
+	if (_attachments.size()) {
+		for (size_t i = 0; i < _attachments.size(); i++)
+			buffers.push_back(GL_COLOR_ATTACHMENT0 + _attachments[i].id);
+		glDrawBuffers(buffers.size(), &buffers[0]);
+	}
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		std::cerr << "Framebuffer failed!" << std::endl << "\tStatus: " << status << std::endl;
+		throw new std::exception();
+	}
 	return *this;
 }
 

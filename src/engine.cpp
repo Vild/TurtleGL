@@ -172,9 +172,16 @@ int Engine::run() {
 							for (int i = 0; i < LIGHT_COUNT; i++)
 								_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(0.5f));
 
-							GLfloat near_plane = 1.0f, far_plane = 50.0f;
+							GLfloat near_plane = 1.0f, far_plane = 60.0f;
 							glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-							glm::mat4 lightView = glm::lookAt(_lights[0].pos, glm::vec3(0, 0, 0), glm::vec3(1.0f, 0.0f, 0.0f));
+
+							float lightPitch = -M_PI / 2;
+							float lightYaw = 0;
+
+							glm::vec3 forward(cos(lightPitch) * sin(lightYaw), sin(lightPitch), cos(lightPitch) * cos(lightYaw));
+							glm::vec3 right(sin(lightYaw - M_PI / 2.0f), 0, cos(lightYaw - M_PI / 2.0f));
+							glm::vec3 up = glm::cross(right, forward);
+							glm::mat4 lightView = glm::lookAt(_lights[0].pos, _lights[0].pos + forward, up);
 							glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 							_shadowmapProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);
 							_deferredProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);
@@ -201,19 +208,20 @@ int Engine::run() {
 		glm::mat4 vp = _projection * _view;
 
 		// Render step 1 - Render everything to shadowmapFBO
-
 		_shadowmapFBO->bind();
 		glViewport(0, 0, 1024, 1024);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
-		for (std::shared_ptr<Entity> entity : _entities) {
+		for (std::shared_ptr<Entity> entity : _entities)
 			entity->update(delta);
-		}
+
+		// Uncomment to show shadowmap on Plane entitiy
+		//std::dynamic_pointer_cast<AssimpEntity>(_entities[3])->setTexture(_shadowmapFBO->getAttachments()[0].texture);
 
 		_shadowmapProgram->bind();
-		for (std::shared_ptr<Entity> entity : _entities) {
+		for (std::shared_ptr<Entity> entity : _entities)
 			entity->render();
-		}
+
 		glViewport(0, 0, _width, _height);
 
 		// Render step 2 - Render everything to deferredFB
@@ -223,9 +231,8 @@ int Engine::run() {
 
 		_baseProgram->bind();
 		_baseProgram->setUniform("vp", vp);
-		for (std::shared_ptr<Entity> entity : _entities) {
+		for (std::shared_ptr<Entity> entity : _entities)
 			entity->render();
-		}
 
 		// Render step 3 - Render to screen
 		_screen->bind();
@@ -465,7 +472,7 @@ void Engine::_initMeshes() {
 	_entities.push_back(std::make_shared<Earth>());
 	_entities.push_back(std::make_shared<Duck>());
 	_entities.push_back(std::make_shared<Plane>());
-	_entities.push_back(std::make_shared<Triangle>());
+	//_entities.push_back(std::make_shared<Triangle>());
 	{
 		std::vector<Vertex> verticies = {
 			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//
@@ -530,7 +537,7 @@ void Engine::_initLights() {
 	//	}
 
 	// One light for testing.
-	_lights[0].pos = glm::vec3(0, 12, 0);
+	_lights[0].pos = glm::vec3(4, 16, 4);
 	_lights[0].color = glm::vec3(1, 1, 1);
 	GLfloat constant = 1.0;
 	_lights[0].linear = 0.7;
@@ -539,14 +546,19 @@ void Engine::_initLights() {
 	_lights[0].radius = (-_lights[0].linear + sqrtf(_lights[0].linear * _lights[0].linear - 4 * _lights[0].quadratic * (constant - (256.0 / 5.0) * lightMax))) /
 											(2 * _lights[0].quadratic);
 
-	GLfloat near_plane = 1.0f, far_plane = 50.0f;
-	// glm::mat4 lightProjection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 60.0f);
+	GLfloat near_plane = 1.0f, far_plane = 60.0f;
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-	glm::mat4 lightView = glm::lookAt(_lights[0].pos, glm::vec3(0, 0, 0), glm::vec3(1.0f, 0.0f, 0.0f));
+
+	float lightPitch = -M_PI / 2;
+	float lightYaw = 0;
+
+	glm::vec3 forward(cos(lightPitch) * sin(lightYaw), sin(lightPitch), cos(lightPitch) * cos(lightYaw));
+	glm::vec3 right(sin(lightYaw - M_PI / 2.0f), 0, cos(lightYaw - M_PI / 2.0f));
+	glm::vec3 up = glm::cross(right, forward);
+	glm::mat4 lightView = glm::lookAt(_lights[0].pos, _lights[0].pos + forward, up);
 	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 	_shadowmapProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);
 	_deferredProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);
-
 	_lightsBuffer = std::make_shared<UniformBuffer>(sizeof(Light) * LIGHT_COUNT);
 	_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);
 
