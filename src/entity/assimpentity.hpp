@@ -10,9 +10,7 @@ public:
 	virtual ~AssimpEntity();
 	virtual void render(GLenum drawMode = GL_TRIANGLES);
 
-	void setTexture(std::shared_ptr<Texture> texture) {
-		_texture = texture;
-	}
+	void setTexture(std::shared_ptr<Texture> texture) { _texture = texture; }
 
 protected:
 	std::shared_ptr<Texture> _texture;
