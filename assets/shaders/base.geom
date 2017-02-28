@@ -16,8 +16,11 @@ out vec3 gNormal;
 out vec3 gColor;
 out vec2 gUV;
 out mat3 gTBN;
+out vec4 gShadowCoord;
 
-uniform mat4 vp;
+uniform mat4 v;
+uniform mat4 p;
+uniform mat4 s;
 uniform vec3 cameraPos;
 
 uniform bool setting_doBackFaceCulling;
@@ -61,7 +64,9 @@ void main() {
 		gUV = vUV[i];
 		gTBN = calcTBN(normalMatrix, vNormal[i], i);
 
-		gl_Position = vp * pos;
+		gShadowCoord = s * pos;
+
+		gl_Position = p * v * pos;
 		EmitVertex();
 	}
 	EndPrimitive();

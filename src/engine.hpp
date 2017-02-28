@@ -31,7 +31,7 @@ public:
 private:
 	uint32_t _width = 1280;
 	uint32_t _height = 720;
-	bool _vsync = false;
+	bool _vsync = true;
 
 	float _speed = 5.0f;
 	float _fov = 80.0f;
@@ -75,10 +75,12 @@ private:
 		float radius;
 		glm::vec3 color;
 		float linear;
-		glm::vec3 _pad0;
 		float quadratic;
+		float yaw;
+		float pitch;
+		float _pad0;
 
-		Light() : pos(glm::vec3(0)), radius(0), color(glm::vec3(0)), linear(0), quadratic(0) {}
+		Light() : pos(glm::vec3(0)), radius(0), color(glm::vec3(0)), linear(0), quadratic(0), yaw(0), pitch(0) {}
 	};
 
 	static const int LIGHT_COUNT = 1;
@@ -87,6 +89,10 @@ private:
 
 	std::shared_ptr<Mesh> _lightBulb;
 	std::vector<glm::mat4> _lightsMatrix;
+
+	glm::mat4 _lightMV;
+	glm::mat4 _lightP;
+	glm::mat4 _lightS;
 
 	// Settings (OpenGL)
 	bool _setting_ogl_doBackFaceCulling = true;
@@ -116,4 +122,5 @@ private:
 
 	void _resolutionChanged();
 	void _updateMovement(float delta, bool updateCamera);
+	void _updateLights();
 };

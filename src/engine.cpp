@@ -172,29 +172,11 @@ int Engine::run() {
 
 					if (ImGui::BeginPopup((std::string("color") + std::to_string(i)).c_str())) {
 						ImGui::Text((std::string("Editing Light #") + std::to_string(i)).c_str());
-						if (ImGui::ColorEdit3("##color", glm::value_ptr(_lights[i].color))) {
+						if (ImGui::ColorEdit3("##color", glm::value_ptr(_lights[i].color))) // This doesn't need to update the matricies
 							_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);
-						}
 
-						if (ImGui::DragFloat3("##pos", glm::value_ptr(_lights[i].pos), 0.1)) {
-							_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);
-							for (int i = 0; i < LIGHT_COUNT; i++)
-								_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(0.5f));
-
-							GLfloat near_plane = 1.0f, far_plane = 60.0f;
-							glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-
-							float lightPitch = -M_PI / 2;
-							float lightYaw = 0;
-
-							glm::vec3 forward(cos(lightPitch) * sin(lightYaw), sin(lightPitch), cos(lightPitch) * cos(lightYaw));
-							glm::vec3 right(sin(lightYaw - M_PI / 2.0f), 0, cos(lightYaw - M_PI / 2.0f));
-							glm::vec3 up = glm::cross(right, forward);
-							glm::mat4 lightView = glm::lookAt(_lights[0].pos, _lights[0].pos + forward, up);
-							glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-							_shadowmapProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);
-							_deferredProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);
-						}
+						if (ImGui::DragFloat3("##pos", glm::value_ptr(_lights[i].pos), 0.1))
+							_updateLights();
 
 						if (ImGui::Button("Close"))
 							ImGui::CloseCurrentPopup();
@@ -228,8 +210,12 @@ int Engine::run() {
 		// std::dynamic_pointer_cast<AssimpEntity>(_entities[3])->setTexture(_shadowmapFBO->getAttachments()[0].texture);
 
 		_shadowmapProgram->bind();
+		glCullFace(GL_FRONT);
+		_shadowmapProgram->setUniform("v", _lightMV);
+		_shadowmapProgram->setUniform("p", _lightP);
 		for (std::shared_ptr<Entity> entity : _entities)
 			entity->render();
+		glCullFace(GL_BACK);
 
 		glViewport(0, 0, _width, _height);
 
@@ -239,7 +225,9 @@ int Engine::run() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		_baseProgram->bind();
-		_baseProgram->setUniform("vp", vp);
+		_baseProgram->setUniform("v", _view);
+		_baseProgram->setUniform("p", _projection);
+		_baseProgram->setUniform("s", _lightS);
 		for (std::shared_ptr<Entity> entity : _entities)
 			entity->render();
 
@@ -252,8 +240,13 @@ int Engine::run() {
 		_deferred->getAttachments()[0].texture->bind(10);
 		_deferred->getAttachments()[1].texture->bind(11);
 		_deferred->getAttachments()[2].texture->bind(12);
-		_shadowmapFBO->getAttachments()[0].texture->bind(13);
-		_deferredProgram->setUniform("defPos", 10).setUniform("defNormal", 11).setUniform("defDiffuseSpecular", 12).setUniform("shadowMap", 13);
+		_deferred->getAttachments()[3].texture->bind(13);
+		_shadowmapFBO->getAttachments()[0].texture->bind(14);
+		_deferredProgram->setUniform("defPos", 10)
+			.setUniform("defNormal", 11)
+			.setUniform("defDiffuseSpecular", 12)
+			.setUniform("defShadowCoord", 13)
+			.setUniform("shadowMap", 14);
 
 		_deferredProgram->setUniform("vp", glm::mat4(1));
 		_deferredPlane->render();
@@ -400,7 +393,7 @@ void Engine::_initShaders() {
 		_shadowmapProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/shadowmap.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/shadowmap.frag", ShaderType::fragment))
 			.finalize();
-		_shadowmapProgram->bind().addUniform("lightSpaceMatrix");
+		_shadowmapProgram->bind().addUniform("v").addUniform("p");
 	}
 	{
 		_baseProgram = std::make_shared<ShaderProgram>();
@@ -409,7 +402,9 @@ void Engine::_initShaders() {
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.frag", ShaderType::fragment))
 			.finalize();
 		_baseProgram->bind()
-			.addUniform("vp")
+			.addUniform("v")
+			.addUniform("p")
+			.addUniform("s")
 			.addUniform("cameraPos")
 			.addUniform("diffuseTexture")
 			.addUniform("normalTexture")
@@ -435,10 +430,10 @@ void Engine::_initShaders() {
 			.finalize();
 		_deferredProgram->bind()
 			.addUniform("vp")
-			.addUniform("lightSpaceMatrix")
 			.addUniform("defPos")
 			.addUniform("defNormal")
 			.addUniform("defDiffuseSpecular")
+			.addUniform("defShadowCoord")
 			.addUniform("shadowMap")
 			.addUniform("cameraPos")
 			.addUniform("normalTexture")
@@ -516,34 +511,17 @@ void Engine::_initGBuffers() {
 	_shadowmapFBO->bind().attachDepthTexture(0, 1024, 1024);
 	_deferred = std::make_shared<GBuffer>();
 	_deferred->bind()
-		.attachTexture(0, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 3)	// Position
+		.attachTexture(0, _width, _height, GL_RGB32F, GL_FLOAT, 3)			 // Position
 		.attachTexture(1, _width, _height, GL_RGB, GL_UNSIGNED_BYTE, 3)	// Normal
 		.attachTexture(2, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, 4) // Diffuse + Specular
+		.attachTexture(3, _width, _height, GL_RGBA32F, GL_FLOAT, 4)			 // ShadowCoord
 		.attachRenderBuffer(_width, _height)
 		.finalize();
 }
 
 void Engine::_initLights() {
 	_lights.resize(LIGHT_COUNT);
-	//	for (int i = 0; i < LIGHT_COUNT; i++) {
-	//		_lights[i].pos = glm::vec3{((i % 8) % 3) * 6 - 2, 2 + (i / 8) * 4, ((i % 8) / 3) * 6 - 2};
-	//		float r = (i % 4) / 4.0;
-	//		float g = (i / 4) / 4.0;
-	//		float b = 1 - r - g;
-	//		if (b < 0)
-	//			b = 0;
-	//
-	//		_lights[i].color = glm::vec3{r, g, b};
-	//
-	//
-	//// https://learnopengl.com/#!Advanced-Lighting/Deferred-Shading
-	//		GLfloat constant = 1.0;
-	//		_lights[i].linear = 0.7;
-	//		_lights[i].quadratic = 1.8;
-	//		GLfloat lightMax = fmaxf(fmaxf(_lights[i].color.r, _lights[i].color.g), _lights[i].color.b);
-	//		_lights[i].radius = (-_lights[i].linear + sqrtf(_lights[i].linear * _lights[i].linear - 4 * _lights[i].quadratic * (constant - (256.0 / 5.0) *
-	// lightMax))) / (2 * _lights[i].quadratic);
-	//	}
+	_lightsMatrix.resize(LIGHT_COUNT);
 
 	// One light for testing.
 	_lights[0].pos = glm::vec3(4, 16, 4);
@@ -554,22 +532,11 @@ void Engine::_initLights() {
 	GLfloat lightMax = fmaxf(fmaxf(_lights[0].color.r, _lights[0].color.g), _lights[0].color.b);
 	_lights[0].radius = (-_lights[0].linear + sqrtf(_lights[0].linear * _lights[0].linear - 4 * _lights[0].quadratic * (constant - (256.0 / 5.0) * lightMax))) /
 											(2 * _lights[0].quadratic);
+	_lights[0].pitch = -M_PI / 2;
+	_lights[0].yaw = 0;
 
-	GLfloat near_plane = 1.0f, far_plane = 60.0f;
-	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-
-	float lightPitch = -M_PI / 2;
-	float lightYaw = 0;
-
-	glm::vec3 forward(cos(lightPitch) * sin(lightYaw), sin(lightPitch), cos(lightPitch) * cos(lightYaw));
-	glm::vec3 right(sin(lightYaw - M_PI / 2.0f), 0, cos(lightYaw - M_PI / 2.0f));
-	glm::vec3 up = glm::cross(right, forward);
-	glm::mat4 lightView = glm::lookAt(_lights[0].pos, _lights[0].pos + forward, up);
-	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-	_shadowmapProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);
-	_deferredProgram->bind().setUniform("lightSpaceMatrix", lightSpaceMatrix);
 	_lightsBuffer = std::make_shared<UniformBuffer>(sizeof(Light) * LIGHT_COUNT);
-	_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);
+	_updateLights();
 
 	_deferredProgram->bind().addUniformBuffer("Lights", _lightsBuffer, 8);
 
@@ -578,10 +545,6 @@ void Engine::_initLights() {
 		.attach(std::make_shared<ShaderUnit>("assets/shaders/light.frag", ShaderType::fragment))
 		.finalize();
 	_lightProgram->bind().addUniform("vp").addUniformBuffer("Lights", _lightsBuffer, 8);
-
-	_lightsMatrix.resize(LIGHT_COUNT);
-	for (int i = 0; i < LIGHT_COUNT; i++)
-		_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(0.5f));
 
 	_lightBulb = std::make_shared<Mesh>("assets/objects/sphere_blue_blinn_760_tris_TRIANGULATED.obj");
 
@@ -653,4 +616,24 @@ void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't ca
 	_view = glm::lookAt(_position, _position + forward, up);
 	_baseProgram->bind().setUniform("cameraPos", _position);
 	_deferredProgram->bind().setUniform("cameraPos", _position);
+}
+
+void Engine::_updateLights() {
+	_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);
+	for (int i = 0; i < LIGHT_COUNT; i++)
+		_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(0.5f));
+
+	GLfloat nearPlane = 1.0f, farPlane = 60.0f;
+
+	glm::vec3 forward(cos(_lights[0].pitch) * sin(_lights[0].yaw), sin(_lights[0].pitch), cos(_lights[0].pitch) * cos(_lights[0].yaw));
+	glm::vec3 right(sin(_lights[0].yaw - M_PI / 2.0f), 0, cos(_lights[0].yaw - M_PI / 2.0f));
+	glm::vec3 up = glm::cross(right, forward);
+
+	_lightMV = glm::lookAt(_lights[0].pos, _lights[0].pos + forward, up);
+	_lightP = glm::perspective(50.0f, 1.0f, nearPlane, farPlane);
+	//_lightP = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+	glm::mat4 lightB = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.5, 0.5, 0.5)), glm::vec3(0.5, 0.5, 0.5));
+
+	glm::mat4 lightBP = lightB * _lightP;
+	_lightS = lightBP * _lightMV;
 }

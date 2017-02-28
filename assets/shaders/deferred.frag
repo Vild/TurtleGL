@@ -10,8 +10,10 @@ struct Light {
 	float radius;
 	vec3 color;
 	float linear;
-	vec3 _pad0;
 	float quadratic;
+	float yaw;
+	float pitch;
+	float _pad0;
 };
 
 #define LIGHT_COUNT 1
@@ -20,12 +22,12 @@ layout (std140) uniform Lights {
 };
 
 uniform vec3 cameraPos;
-uniform mat4 lightSpaceMatrix;
 
 uniform sampler2D defPos;
 uniform sampler2D defNormal;
 uniform sampler2D defDiffuseSpecular;
-uniform sampler2D shadowMap;
+uniform sampler2D defShadowCoord;
+uniform sampler2DShadow shadowMap;
 
 uniform bool setting_enableAmbient;
 uniform bool setting_enableShadow;
@@ -33,28 +35,12 @@ uniform bool setting_enableDiffuse;
 uniform bool setting_enableSpecular;
 uniform float setting_shininess;
 
-float ShadowCalc(vec4 fragPosLightSpace, vec3 normal, vec3 toLight){
-	// Division by w is needed for perspective so it's here for the future, it remains untouched by orthographic projection
-	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-	// Multiplication and addition by 0.5f to get coord into NDC, [-1,1] -> [0,1]
-	projCoords = projCoords * 0.5 + 0.5;
-
-	float closestDepth = texture(shadowMap, projCoords.xy).r;
-	float currentDepth = projCoords.z;
-	// Bias to remove shadow acne.
-	float bias = max(0.05f * (1.0 - dot(normal, toLight)), 0.005f);
-
-	float shadow = (currentDepth) > closestDepth ? 1.0 : 0.0;
-
-	return shadow;
-}
-
 void main() {
 	vec3 pos = texture(defPos, vUV).xyz;
 	vec3 normal = texture(defNormal, vUV).xyz;
 	vec3 diffuse = texture(defDiffuseSpecular, vUV).xyz;
 	float specular = texture(defDiffuseSpecular, vUV).w;
-	vec4 fragPosLightSpace = lightSpaceMatrix * vec4(pos, 1.0f);
+	vec4 shadowCoord = texture(defShadowCoord, vUV);
 
 	vec3 lighting = vec3(0);
 
@@ -73,7 +59,9 @@ void main() {
 		vec3 ambientLight = diffuse * 0.1f;
 
 		// Shadow
-		float shadow = ShadowCalc(fragPosLightSpace, normal, toLight);
+		float shadow = 1;
+		if (shadowCoord.w > 1)
+			shadow = textureProj(shadowMap, shadowCoord);
 
 		vec3 result = vec3(0);
 		if (setting_enableDiffuse)
@@ -81,7 +69,7 @@ void main() {
 		if (setting_enableSpecular)
 			result += specularLight;
 		if (setting_enableShadow)
-			result *= 1.0f - shadow; // *= because: (1.0 - shadow) * (diffuse + specular)
+			result *= shadow;
 		if (setting_enableAmbient)
 			result += ambientLight;
 
