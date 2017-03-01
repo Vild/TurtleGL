@@ -10,9 +10,9 @@
 #include <glm/gtx/matrix_interpolation.hpp>
 #include <cmath>
 
-#include "entity/box.hpp"
-#include "entity/earth.hpp"
 #include "entity/duck.hpp"
+#include "entity/earth.hpp"
+#include "entity/jeep.hpp"
 #include "entity/plane.hpp"
 #include "entity/triangle.hpp"
 
@@ -498,9 +498,9 @@ void Engine::_initMeshes() {
 									})
 			.finalize();
 	}
-	_entities.push_back(std::make_shared<Box>());
-	_entities.push_back(std::make_shared<Earth>());
 	_entities.push_back(std::make_shared<Duck>());
+	_entities.push_back(std::make_shared<Earth>());
+	_entities.push_back(std::make_shared<Jeep>());
 	_entities.push_back(std::make_shared<Plane>());
 	//_entities.push_back(std::make_shared<Triangle>());
 	{

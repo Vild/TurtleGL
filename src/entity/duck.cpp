@@ -2,12 +2,18 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "duck.hpp"
 
-Duck::Duck() : AssimpEntity("assets/objects/jeep1.fbx"), _model(glm::mat4(1)) {
+#include <GL/glew.h>
+#include <vector>
+#include <glm/glm.hpp>
+#include <cstdint>
+
+Duck::Duck() : AssimpEntity("assets/objects/duck.fbx"), _baseMatrix(glm::scale(glm::vec3(0.01f))) {
+	_drawCount = 27;
 	_mesh
 		->addBuffer("m",
-								[](GLuint id) {
+								[&](GLuint id) {
 									glBindBuffer(GL_ARRAY_BUFFER, id);
-									glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), NULL, GL_STATIC_DRAW); // Will only be uploaded once
+									glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * _drawCount, NULL, GL_STATIC_DRAW); // Will only be uploaded once
 
 									for (int i = 0; i < 4; i++) {
 										glEnableVertexAttribArray(ShaderAttributeID::m + i);
@@ -18,11 +24,17 @@ Duck::Duck() : AssimpEntity("assets/objects/jeep1.fbx"), _model(glm::mat4(1)) {
 									glBindBuffer(GL_ARRAY_BUFFER, 0);
 								})
 		.finalize();
+	_matrices.resize(_drawCount);
 }
-Duck::~Duck() {}
 
 void Duck::update(float delta) {
-	_model *= glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0));
-	glm::mat4 model = glm::translate(glm::vec3(4, -4, 4)) * glm::scale(glm::vec3(0.1f)) * _model;
-	_mesh->uploadBufferData("m", model);
+	static float timeCounter = 0;
+	timeCounter += delta;
+	_baseMatrix *= glm::rotate(delta, glm::vec3(0, -1.5 * 10, 0));
+
+	glm::mat4 movement = glm::mat4(1); // glm::translate(glm::vec3(sin(timeCounter) * 4, 0, sin(timeCounter) * 4 - cos(timeCounter) * 4));
+	for (int y = 0; y < 3; y++)
+		for (int i = 0; i < 9; i++)
+			_matrices[y * 9 + i] = (movement * glm::translate(glm::vec3{(i % 3) * 4, y * 4, (i / 3) * 4})) * _baseMatrix;
+	_mesh->uploadBufferArray("m", _matrices);
 }
