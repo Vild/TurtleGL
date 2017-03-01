@@ -102,7 +102,7 @@ private:
 
 	// Settings (Shaders)
 	bool _setting_base_doBackFaceCulling = true;
-	float _setting_base_defaultSpecular = 0.5f;
+	float _setting_base_defaultSpecular = 1;
 
 	bool _setting_deferred_enableAmbient = true;
 	bool _setting_deferred_enableShadow = true;

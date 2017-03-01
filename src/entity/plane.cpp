@@ -2,7 +2,10 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "plane.hpp"
 
-Plane::Plane() : AssimpEntity("assets/objects/plane.fbx"), _model(glm::mat4(1)) {
+#include "../engine.hpp"
+
+Plane::Plane() : AssimpEntity("assets/objects/plane/plane.fbx", "assets/objects/plane/RockDesert004_NRM_3K.jpg"), _model(glm::mat4(1)) {
+	_texture = Engine::getInstance().getTextureManager()->getTexture("assets/objects/plane/RockDesert004_COL_VAR1_3K.jpg");
 	_mesh
 		->addBuffer("m",
 								[](GLuint id) {
@@ -23,7 +26,7 @@ Plane::Plane() : AssimpEntity("assets/objects/plane.fbx"), _model(glm::mat4(1)) 
 Plane::~Plane() {}
 
 void Plane::update(float delta) {
-	_model = glm::scale(glm::vec3(15.0f, 0.1f, 15.0f));
+	_model = glm::scale(glm::vec3(50.0f, 0.1f, 50.0f));
 	glm::mat4 model = glm::translate(glm::vec3(0, -2, 0)) * _model;
 	_mesh->uploadBufferData("m", model);
 }

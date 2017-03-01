@@ -14,6 +14,7 @@
 #include "entity/earth.hpp"
 #include "entity/jeep.hpp"
 #include "entity/plane.hpp"
+#include "entity/planetsystem.hpp"
 #include "entity/triangle.hpp"
 
 Engine::~Engine() {
@@ -134,7 +135,7 @@ int Engine::run() {
 
 				ImGui::Separator();
 
-				if (ImGui::DragFloat("Default Specular", &_setting_base_defaultSpecular, 0.005, 0, 1))
+				if (ImGui::DragFloat("Default Specular", &_setting_base_defaultSpecular, 0.005, 0.005, 2))
 					_baseProgram->setUniform("setting_defaultSpecular", _setting_base_defaultSpecular);
 			}
 
@@ -498,9 +499,10 @@ void Engine::_initMeshes() {
 									})
 			.finalize();
 	}
-	_entities.push_back(std::make_shared<Duck>());
-	_entities.push_back(std::make_shared<Earth>());
-	_entities.push_back(std::make_shared<Jeep>());
+	//_entities.push_back(std::make_shared<Duck>());
+	//_entities.push_back(std::make_shared<Earth>());
+	//_entities.push_back(std::make_shared<Jeep>());
+	_entities.push_back(std::make_shared<PlanetSystem>());
 	_entities.push_back(std::make_shared<Plane>());
 	//_entities.push_back(std::make_shared<Triangle>());
 	{
@@ -595,7 +597,7 @@ void Engine::_initLights() {
 }
 
 void Engine::_resolutionChanged() { // TODO: don't call all the time
-	_projection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 60.0f);
+	_projection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 120.0f);
 	glViewport(0, 0, _width, _height);
 	_initGBuffers();
 }
@@ -649,7 +651,7 @@ void Engine::_updateLights() {
 	for (int i = 0; i < LIGHT_COUNT; i++)
 		_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(0.5f));
 
-	GLfloat nearPlane = 1.0f, farPlane = 60.0f;
+	GLfloat nearPlane = 1.0f, farPlane = 120.0f;
 
 	glm::vec3 forward(cos(_lights[0].pitch) * sin(_lights[0].yaw), sin(_lights[0].pitch), cos(_lights[0].pitch) * cos(_lights[0].yaw));
 	glm::vec3 right(sin(_lights[0].yaw - M_PI / 2.0f), 0, cos(_lights[0].yaw - M_PI / 2.0f));
