@@ -80,7 +80,7 @@ private:
 		float pitch;
 		float _pad0;
 
-		Light() : pos(glm::vec3(0)), radius(0), color(glm::vec3(0)), linear(0), quadratic(0), yaw(0), pitch(0) {}
+		Light() : pos(glm::vec3(0)), radius(0), color(glm::vec3(0)), linear(0), quadratic(0), yaw(0), pitch(0), _pad0(0) {}
 	};
 
 	static const int LIGHT_COUNT = 1;
