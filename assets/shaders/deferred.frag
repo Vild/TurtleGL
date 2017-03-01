@@ -34,6 +34,12 @@ uniform bool setting_enableShadow;
 uniform bool setting_enableDiffuse;
 uniform bool setting_enableSpecular;
 uniform float setting_shininess;
+uniform int setting_pcfSamples;
+
+float random(vec4 seed) {
+	float dot_product = dot(seed, vec4(12.9898,78.233,45.164,94.673));
+	return fract(sin(dot_product) * 43758.5453);
+}
 
 void main() {
 	vec3 pos = texture(defPos, vUV).xyz;
@@ -60,16 +66,26 @@ void main() {
 
 		// Shadow
 		float shadow = 1;
-		if (shadowCoord.w > 1)
-			shadow = textureProj(shadowMap, shadowCoord);
+
+		if (setting_enableShadow && shadowCoord.w > 1) {
+			shadow = 0;
+
+			for (int i = 0; i < setting_pcfSamples; i++) {
+				float indexA = (random(vec4(pos.xyx, i)) * 0.2) * 1;
+				float indexB = (random(vec4(pos.yxy, i)) * 0.2) * 1;
+				shadow += textureProj(shadowMap, shadowCoord + vec4(indexA, indexB, 0, 0));
+			}
+			shadow /= setting_pcfSamples;
+		}
 
 		vec3 result = vec3(0);
 		if (setting_enableDiffuse)
 			result += diffuseLight;
 		if (setting_enableSpecular)
 			result += specularLight;
-		if (setting_enableShadow)
-			result *= shadow;
+
+		result *= shadow;
+
 		if (setting_enableAmbient)
 			result += ambientLight;
 

@@ -153,6 +153,11 @@ int Engine::run() {
 
 				if (ImGui::DragFloat("Shininess", &_setting_deferred_shininess, 0.1, 0.1, 256))
 					_deferredProgram->setUniform("setting_shininess", _setting_deferred_shininess);
+
+				if (ImGui::DragInt("PCF Samples", &_setting_deferred_pcfSamples, 1, 1, 16)) {
+					_setting_deferred_pcfSamples = glm::clamp(_setting_deferred_pcfSamples, 1, 16);
+					_deferredProgram->setUniform("setting_pcfSamples", _setting_deferred_pcfSamples);
+				}
 			}
 
 			ImGui::Separator();
@@ -172,11 +177,30 @@ int Engine::run() {
 
 					if (ImGui::BeginPopup((std::string("color") + std::to_string(i)).c_str())) {
 						ImGui::Text((std::string("Editing Light #") + std::to_string(i)).c_str());
+
+						ImGui::Text("Color");
+
 						if (ImGui::ColorEdit3("##color", glm::value_ptr(_lights[i].color))) // This doesn't need to update the matricies
 							_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);
 
+						ImGui::Text("Pos");
+
 						if (ImGui::DragFloat3("##pos", glm::value_ptr(_lights[i].pos), 0.1))
 							_updateLights();
+
+						ImGui::Text("Yaw");
+
+						if (ImGui::DragFloat("##yaw", &_lights[i].yaw, (float)M_PI / 64, (float)-M_PI / 2, (float)M_PI / 2)) {
+							_lights[i].yaw = glm::clamp(_lights[i].yaw, (float)-M_PI / 2, (float)M_PI / 2);
+							_updateLights();
+						}
+
+						ImGui::Text("Pitch");
+
+						if (ImGui::DragFloat("##pitch", &_lights[i].pitch, (float)M_PI / 64, (float)-M_PI, (float)M_PI)) {
+							_lights[i].pitch = glm::clamp(_lights[i].pitch, (float)-M_PI, (float)M_PI);
+							_updateLights();
+						}
 
 						if (ImGui::Button("Close"))
 							ImGui::CloseCurrentPopup();
@@ -200,7 +224,7 @@ int Engine::run() {
 
 		// Render step 1 - Render everything to shadowmapFBO
 		_shadowmapFBO->bind();
-		glViewport(0, 0, 1024, 1024);
+		glViewport(0, 0, _shadowmapSize, _shadowmapSize);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		for (std::shared_ptr<Entity> entity : _entities)
@@ -441,13 +465,15 @@ void Engine::_initShaders() {
 			.addUniform("setting_enableShadow")
 			.addUniform("setting_enableDiffuse")
 			.addUniform("setting_enableSpecular")
-			.addUniform("setting_shininess");
+			.addUniform("setting_shininess")
+			.addUniform("setting_pcfSamples");
 		_deferredProgram->setUniform("normalTexture", 1)
 			.setUniform("setting_enableAmbient", _setting_deferred_enableAmbient)
 			.setUniform("setting_enableShadow", _setting_deferred_enableShadow)
 			.setUniform("setting_enableDiffuse", _setting_deferred_enableDiffuse)
 			.setUniform("setting_enableSpecular", _setting_deferred_enableSpecular)
-			.setUniform("setting_shininess", _setting_deferred_shininess);
+			.setUniform("setting_shininess", _setting_deferred_shininess)
+			.setUniform("setting_pcfSamples", _setting_deferred_pcfSamples);
 	}
 }
 
@@ -508,7 +534,7 @@ void Engine::_initMeshes() {
 void Engine::_initGBuffers() {
 	_screen = std::make_shared<GBuffer>(0);
 	_shadowmapFBO = std::make_shared<GBuffer>();
-	_shadowmapFBO->bind().attachDepthTexture(0, 1024, 1024);
+	_shadowmapFBO->bind().attachDepthTexture(0, _shadowmapSize, _shadowmapSize);
 	_deferred = std::make_shared<GBuffer>();
 	_deferred->bind()
 		.attachTexture(0, _width, _height, GL_RGB32F, GL_FLOAT, 3)			 // Position
@@ -630,8 +656,7 @@ void Engine::_updateLights() {
 	glm::vec3 up = glm::cross(right, forward);
 
 	_lightMV = glm::lookAt(_lights[0].pos, _lights[0].pos + forward, up);
-	_lightP = glm::perspective(50.0f, 1.0f, nearPlane, farPlane);
-	//_lightP = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+	_lightP = glm::perspective(80.0f, 1.0f, nearPlane, farPlane);
 	glm::mat4 lightB = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0.5, 0.5, 0.5)), glm::vec3(0.5, 0.5, 0.5));
 
 	glm::mat4 lightBP = lightB * _lightP;

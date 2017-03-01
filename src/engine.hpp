@@ -94,6 +94,8 @@ private:
 	glm::mat4 _lightP;
 	glm::mat4 _lightS;
 
+	const int _shadowmapSize = 1024;
+
 	// Settings (OpenGL)
 	bool _setting_ogl_doBackFaceCulling = true;
 	bool _setting_ogl_renderLights = true;
@@ -107,6 +109,7 @@ private:
 	bool _setting_deferred_enableDiffuse = true;
 	bool _setting_deferred_enableSpecular = true;
 	float _setting_deferred_shininess = 64.0f;
+	int _setting_deferred_pcfSamples = 8;
 
 	Engine() {}
 	virtual ~Engine();
