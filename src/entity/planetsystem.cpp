@@ -31,10 +31,9 @@ void PlanetSystem::update(float delta) {
 	for (unsigned int i = 0; i < _drawCount; i++) {
 		Planet& planet = _planets[i];
 
+		// TODO: Implement real physics here
 
-		//TODO: Implement real physics here
-
-		planet.model *= glm::rotate(delta * (i/2), glm::vec3(0, -1, 0));
+		planet.model *= glm::rotate(delta * (i / 2), glm::vec3(0, -1, 0));
 
 		glm::mat4 model = planet.model * glm::translate(glm::vec3(4 + i * 4, 4, 4 + i * 4)) * glm::scale(glm::vec3(1.0f / 150)) *
 											glm::rotate((float)M_PI / 2.0f, glm::vec3(-1, 0, 0));
