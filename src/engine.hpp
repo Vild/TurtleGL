@@ -99,6 +99,7 @@ private:
 	// Settings (OpenGL)
 	bool _setting_ogl_doBackFaceCulling = true;
 	bool _setting_ogl_renderLights = true;
+	float _setting_deltaMultiplier = 1;
 
 	// Settings (Shaders)
 	bool _setting_base_doBackFaceCulling = true;

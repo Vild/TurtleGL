@@ -6,7 +6,6 @@
 #include <iostream>
 
 static const float G = 6.67384E-11;
-
 PlanetSystem::PlanetSystem(glm::vec3 center) : AssimpEntity("assets/objects/planets/earth.3DS", "assets/objects/planets/4096_NOR.JPG"), _center(center) {
 	_drawCount = 9;
 	_mesh
@@ -35,7 +34,7 @@ PlanetSystem::PlanetSystem(glm::vec3 center) : AssimpEntity("assets/objects/plan
 		sun.rotation = fix;
 		sun.distanceFromCenter = 0;
 		sun.radius = 25.0f;
-		sun.mass = 33330.0f;
+		sun.mass = 3333330.0f;
 	}
 	{
 		Planet& p = _planets[1];
@@ -104,36 +103,30 @@ PlanetSystem::PlanetSystem(glm::vec3 center) : AssimpEntity("assets/objects/plan
 
 	for (unsigned int i = 1; i < _drawCount; i++) {
 		Planet& p = _planets[i];
-		glm::vec3 dir = glm::vec3(0);
-		for (unsigned int j = 0; j < _drawCount; j++) {
-			if (i == j)
-				continue;
-			const Planet& p2 = _planets[j];
-			glm::vec3 toP2 = glm::normalize(p2.position - p.position);
-			dir += toP2 * p2.mass * p.mass;
-		}
+		Planet& sun = _planets[0];
+		p.distanceFromCenter = glm::distance(p.position, sun.position);
+	}
 
-		// dir = glm::vec3(0, 0, 1);
-
-		float r = glm::length(p.position); // glm::distance(p.position, _planets[0].position);
-		float v = glm::sqrt((G * p.mass) / r);
-		dir = glm::normalize(dir);
-		float t = dir.x;
-		dir.x = dir.z;
-		dir.z = t;
-		p.velocity = dir * v*1000.0f;
+	for (unsigned int i = 1; i < _drawCount; i++) {
+		Planet& p = _planets[i];
+		const Planet& sun = _planets[0];
+		p.velocity = glm::vec3(0, 0, 0);
+		glm::vec3 dir = glm::vec3(0, 0, 1);
+		float v = glm::sqrt((G * sun.mass) / (p.distanceFromCenter * p.distanceFromCenter));
+		p.velocity += dir * v;
 	}
 }
 
 PlanetSystem::~PlanetSystem() {}
 
 void PlanetSystem::update(float delta) {
+	//TODO: Always use old pos and old Vel for calculations
 	for (unsigned int i = 0; i < _drawCount; i++) {
 		Planet& p = _planets[i];
 		p.rotation *= glm::rotate(delta / (0.1f * p.radius), glm::vec3(0, 0, -1));
 
 		glm::vec3 force(0);
-		for (unsigned int j = 0; j < 1; j++) {
+		for (unsigned int j = 0; j < _drawCount; j++) {
 			if (i == j)
 				continue;
 			Planet& p2 = _planets[j];
@@ -146,17 +139,11 @@ void PlanetSystem::update(float delta) {
 			force += direction * forceAmount;
 		}
 
-		if (i) {
-			force = glm::normalize(force);
-			std::cout << "Planet " << i << " force: (" << force.x << ", " << force.y << ", " << force.z << ")" << std::endl;
-
-			p.position += p.velocity * delta + (force * delta * delta) / 2.0f;
-			p.velocity += force * delta;
-			std::cout << "Planet " << i << ": (" << p.position.x << ", " << p.position.y << ", " << p.position.z << ")" << std::endl;
-		}
+		force /= p.mass;
+		p.position += p.velocity * delta + (force * delta * delta) / 2.0f;
+		p.velocity += force * delta;
 		_models[i] = glm::translate(_center) * glm::translate(p.position) * glm::scale(glm::vec3(p.radius / 1500)) * p.rotation;
 	}
 
-	std::cout << std::endl;
 	_mesh->uploadBufferArray("m", _models);
 }

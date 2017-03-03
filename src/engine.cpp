@@ -126,6 +126,7 @@ int Engine::run() {
 						glDisable(GL_CULL_FACE);
 				}
 				ImGui::Checkbox("Render lights", &_setting_ogl_renderLights);
+				ImGui::DragFloat("Delta Multiplier", &_setting_deltaMultiplier, 1, 1);
 			}
 
 			if (ImGui::CollapsingHeader("Base Program")) {
@@ -229,7 +230,7 @@ int Engine::run() {
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		for (std::shared_ptr<Entity> entity : _entities)
-			entity->update(delta);
+			entity->update(delta * _setting_deltaMultiplier);
 
 		// Uncomment to show shadowmap on Plane entitiy
 		// std::dynamic_pointer_cast<AssimpEntity>(_entities[3])->setTexture(_shadowmapFBO->getAttachments()[0].texture);
