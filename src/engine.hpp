@@ -33,7 +33,7 @@ private:
 	uint32_t _height = 720;
 	bool _vsync = true;
 
-	float _speed = 5.0f;
+	float _speed = 10.0f;
 	float _fov = 80.0f;
 
 	float _yaw = 0; // +Z (at 0, 0, 0)

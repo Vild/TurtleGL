@@ -26,7 +26,7 @@ Plane::Plane() : AssimpEntity("assets/objects/plane/plane.fbx", "assets/objects/
 Plane::~Plane() {}
 
 void Plane::update(float delta) {
-	_model = glm::scale(glm::vec3(50.0f, 0.1f, 50.0f));
+	_model = glm::scale(glm::vec3(200.0f, 0.1f, 200.0f));
 	glm::mat4 model = glm::translate(glm::vec3(0, -2, 0)) * _model;
 	_mesh->uploadBufferData("m", model);
 }

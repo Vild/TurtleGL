@@ -502,7 +502,7 @@ void Engine::_initMeshes() {
 	//_entities.push_back(std::make_shared<Duck>());
 	//_entities.push_back(std::make_shared<Earth>());
 	//_entities.push_back(std::make_shared<Jeep>());
-	_entities.push_back(std::make_shared<PlanetSystem>());
+	_entities.push_back(std::make_shared<PlanetSystem>(glm::vec3(0, 4, 0)));
 	_entities.push_back(std::make_shared<Plane>());
 	//_entities.push_back(std::make_shared<Triangle>());
 	{
@@ -552,7 +552,7 @@ void Engine::_initLights() {
 	_lightsMatrix.resize(LIGHT_COUNT);
 
 	// One light for testing.
-	_lights[0].pos = glm::vec3(4, 16, 4);
+	_lights[0].pos = glm::vec3(4, 100, 4);
 	_lights[0].color = glm::vec3(1, 1, 1);
 	GLfloat constant = 1.0;
 	_lights[0].linear = 0.7;
@@ -597,7 +597,7 @@ void Engine::_initLights() {
 }
 
 void Engine::_resolutionChanged() { // TODO: don't call all the time
-	_projection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 120.0f);
+	_projection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 1200.0f);
 	glViewport(0, 0, _width, _height);
 	_initGBuffers();
 }
