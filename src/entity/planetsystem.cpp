@@ -24,6 +24,7 @@ PlanetSystem::PlanetSystem(glm::vec3 center) : AssimpEntity("assets/objects/plan
 								})
 		.finalize();
 	_planets.resize(_drawCount);
+	_oldPos.resize(_drawCount);
 	_models.resize(_drawCount);
 
 	glm::mat3 fix = glm::rotate((float)M_PI / 2.0f, glm::vec3(-1, 0, 0)); // Because the model is rotated by default
@@ -112,38 +113,45 @@ PlanetSystem::PlanetSystem(glm::vec3 center) : AssimpEntity("assets/objects/plan
 		const Planet& sun = _planets[0];
 		p.velocity = glm::vec3(0, 0, 0);
 		glm::vec3 dir = glm::vec3(0, 0, 1);
-		float v = glm::sqrt((G * sun.mass) / (p.distanceFromCenter * p.distanceFromCenter));
+		float v = glm::sqrt((G * sun.mass) / p.distanceFromCenter);
 		p.velocity += dir * v;
 	}
 }
 
 PlanetSystem::~PlanetSystem() {}
 
-void PlanetSystem::update(float delta) {
-	//TODO: Always use old pos and old Vel for calculations
-	for (unsigned int i = 0; i < _drawCount; i++) {
-		Planet& p = _planets[i];
-		p.rotation *= glm::rotate(delta / (0.1f * p.radius), glm::vec3(0, 0, -1));
+void PlanetSystem::update(float realDelta) {
+	while (realDelta > 0) {
+		float delta = glm::min(2.0f, realDelta);
+		realDelta -= delta;
 
-		glm::vec3 force(0);
-		for (unsigned int j = 0; j < _drawCount; j++) {
-			if (i == j)
-				continue;
-			Planet& p2 = _planets[j];
+		for (unsigned int i = 0; i < _drawCount; i++)
+			_oldPos[i] = _planets[i].position;
 
-			float r = glm::distance(p.position, p2.position);
-			float forceAmount = (G * p.mass * p2.mass) / (r * r);
+		for (unsigned int i = 0; i < _drawCount; i++) {
+			Planet& p = _planets[i];
+			p.rotation *= glm::rotate(delta / (p.radius), glm::vec3(0, 0, -1));
 
-			glm::vec3 direction = glm::normalize(p2.position - p.position);
+			glm::vec3 force(0);
+			for (unsigned int j = 0; j < _drawCount; j++) {
+				if (i == j)
+					continue;
+				float p2Mass = _planets[j].mass;
+				glm::vec3 p2Pos = _oldPos[j];
 
-			force += direction * forceAmount;
+				float r = glm::distance(p.position, p2Pos);
+				float forceAmount = (G * p.mass * p2Mass) / (r * r);
+
+				glm::vec3 direction = glm::normalize(p2Pos - p.position);
+
+				force += direction * forceAmount;
+			}
+
+			force /= p.mass;
+			p.position += p.velocity * delta + (force * delta * delta) / 2.0f;
+			p.velocity += force * delta;
+			_models[i] = glm::translate(_center) * glm::translate(p.position) * glm::scale(glm::vec3(p.radius / 1500)) * p.rotation;
 		}
-
-		force /= p.mass;
-		p.position += p.velocity * delta + (force * delta * delta) / 2.0f;
-		p.velocity += force * delta;
-		_models[i] = glm::translate(_center) * glm::translate(p.position) * glm::scale(glm::vec3(p.radius / 1500)) * p.rotation;
 	}
-
 	_mesh->uploadBufferArray("m", _models);
 }

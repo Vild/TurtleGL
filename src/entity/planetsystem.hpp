@@ -22,5 +22,6 @@ private:
 	glm::vec3 _center; // Where to place it in the world
 
 	std::vector<Planet> _planets;
+	std::vector<glm::vec3> _oldPos;
 	std::vector<glm::mat4> _models; // For storing the resulting matrix that the GPU will use
 };
