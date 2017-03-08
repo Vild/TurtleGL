@@ -1,0 +1,56 @@
+[
+	{
+		"name": "Sun",
+		"distanceFromCenter": 0,
+		"radius": 15,
+		"mass": 3333333
+	},
+	{
+		"name": "Mercury",
+		"distanceFromCenter": 9,
+		"radius": 0.3829,
+		"mass": 0.553
+	},
+	{
+		"name": "Venus",
+		"distanceFromCenter": 14,
+		"radius": 0.9499,
+		"mass": 0.815
+	},
+	{
+		"name": "Earth",
+		"distanceFromCenter": 18,
+		"radius": 1,
+		"mass": 1
+	},
+	{
+		"name": "Mars",
+		"distanceFromCenter": 24,
+		"radius": 0.532,
+		"mass": 0.107
+	},
+	{
+		"name": "Jupiter",
+		"distanceFromCenter": 32,
+		"radius": 10.97,
+		"mass": 317.83
+	},
+	{
+		"name": "Saturn",
+		"distanceFromCenter": 40,
+		"radius": 7.14,
+		"mass": 95.162
+	},
+	{
+		"name": "Uranus",
+		"distanceFromCenter": 55,
+		"radius": 6.981,
+		"mass": 14.536
+	},
+	{
+		"name": "Neptune",
+		"distanceFromCenter": 70,
+		"radius": 8.865,
+		"mass": 17.147
+	}
+]

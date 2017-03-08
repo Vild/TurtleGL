@@ -503,7 +503,7 @@ void Engine::_initMeshes() {
 	//_entities.push_back(std::make_shared<Duck>());
 	//_entities.push_back(std::make_shared<Earth>());
 	//_entities.push_back(std::make_shared<Jeep>());
-	_entities.push_back(std::make_shared<PlanetSystem>(glm::vec3(0, 4, 0)));
+	_entities.push_back(std::make_shared<PlanetSystem>("assets/planets.json", glm::vec3(0, 4, 0)));
 	_entities.push_back(std::make_shared<Plane>());
 	//_entities.push_back(std::make_shared<Triangle>());
 	{

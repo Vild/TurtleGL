@@ -4,10 +4,25 @@
 
 #include "../engine.hpp"
 #include <iostream>
+#include <fstream>
 
-static const float G = 6.67384E-11;
-PlanetSystem::PlanetSystem(glm::vec3 center) : AssimpEntity("assets/objects/planets/earth.3DS", "assets/objects/planets/4096_NOR.JPG"), _center(center) {
-	_drawCount = 9;
+void from_json(const json& j, Planet& p) {
+	p.name = j["name"].get<std::string>();
+	p.distanceFromCenter = j["distanceFromCenter"].get<float>();
+	p.radius = j["radius"].get<float>();
+	p.mass = j["mass"].get<float>();
+}
+
+PlanetSystem::PlanetSystem(const std::string& planetsConfig, glm::vec3 center)
+	: AssimpEntity("assets/objects/planets/earth.3DS", "assets/objects/planets/4096_NOR.JPG"), _center(center) {
+	{
+		json planetsJson;
+		std::ifstream in(planetsConfig);
+		in >> planetsJson;
+		for (auto& planet : planetsJson)
+			_planets.push_back(planet.get<Planet>());
+	}
+	_drawCount = _planets.size();
 	_mesh
 		->addBuffer("m",
 								[&](GLuint id) {
@@ -27,92 +42,22 @@ PlanetSystem::PlanetSystem(glm::vec3 center) : AssimpEntity("assets/objects/plan
 	_oldPos.resize(_drawCount);
 	_models.resize(_drawCount);
 
-	glm::mat3 fix = glm::rotate((float)M_PI / 2.0f, glm::vec3(-1, 0, 0)); // Because the model is rotated by default
+	const glm::mat3 fix = glm::rotate((float)M_PI / 2.0f, glm::vec3(-1, 0, 0)); // Because the model is rotated by default
 
-	{
-		Planet& sun = _planets[0];
-		sun.position = glm::vec3(0, 0, 0);
-		sun.rotation = fix;
-		sun.distanceFromCenter = 0;
-		sun.radius = 25.0f;
-		sun.mass = 3333330.0f;
-	}
-	{
-		Planet& p = _planets[1];
-		p.position = glm::vec3(8, 0, 0);
-		p.rotation = fix;
-		p.distanceFromCenter = 0;
-		p.radius = 0.3829f;
-		p.mass = 0.553f;
-	}
-	{
-		Planet& p = _planets[2];
-		p.position = glm::vec3(12, 0, 0);
-		p.rotation = fix;
-		p.distanceFromCenter = 0;
-		p.radius = 0.9499f;
-		p.mass = 0.815f;
-	}
-	{
-		Planet& p = _planets[3];
-		p.position = glm::vec3(15, 0, 0);
-		p.rotation = fix;
-		p.distanceFromCenter = 0;
-		p.radius = 1.0f;
-		p.mass = 1.0f;
-	}
-	{
-		Planet& p = _planets[4];
-		p.position = glm::vec3(20, 0, 0);
-		p.rotation = fix;
-		p.distanceFromCenter = 0;
-		p.radius = 0.5320f;
-		p.mass = 0.107f;
-	}
-	{
-		Planet& p = _planets[5];
-		p.position = glm::vec3(28, 0, 0);
-		p.rotation = fix;
-		p.distanceFromCenter = 0;
-		p.radius = 10.97f;
-		p.mass = 317.83f;
-	}
-	{
-		Planet& p = _planets[6];
-		p.position = glm::vec3(35, 0, 0);
-		p.rotation = fix;
-		p.distanceFromCenter = 0;
-		p.radius = 7.140f;
-		p.mass = 95.162f;
-	}
-	{
-		Planet& p = _planets[7];
-		p.position = glm::vec3(50, 0, 0);
-		p.rotation = fix;
-		p.distanceFromCenter = 0;
-		p.radius = 6.981f;
-		p.mass = 14.536f;
-	}
-	{
-		Planet& p = _planets[8];
-		p.position = glm::vec3(60, 0, 0);
-		p.rotation = fix;
-		p.distanceFromCenter = 0;
-		p.radius = 8.865f;
-		p.mass = 17.147f;
-	}
-
-	for (unsigned int i = 1; i < _drawCount; i++) {
+	for (unsigned int i = 0; i < _drawCount; i++) {
 		Planet& p = _planets[i];
-		Planet& sun = _planets[0];
-		p.distanceFromCenter = glm::distance(p.position, sun.position);
+		p.rotation = fix;
+		p.distanceFromCenter *= ValueScalar;
+		p.position = glm::vec3{p.distanceFromCenter, 0, 0};
+		p.radius *= ValueScalar;
+		p.mass *= ValueScalar;
 	}
 
 	for (unsigned int i = 1; i < _drawCount; i++) {
 		Planet& p = _planets[i];
 		const Planet& sun = _planets[0];
 		p.velocity = glm::vec3(0, 0, 0);
-		glm::vec3 dir = glm::vec3(0, 0, 1);
+		glm::vec3 dir = glm::cross(glm::normalize(p.position - sun.position), glm::vec3{0, 1, 0}); // glm::vec3(0, 0, 1);
 		float v = glm::sqrt((G * sun.mass) / p.distanceFromCenter);
 		p.velocity += dir * v;
 	}
@@ -150,7 +95,8 @@ void PlanetSystem::update(float realDelta) {
 			force /= p.mass;
 			p.position += p.velocity * delta + (force * delta * delta) / 2.0f;
 			p.velocity += force * delta;
-			_models[i] = glm::translate(_center) * glm::translate(p.position) * glm::scale(glm::vec3(p.radius / 1500)) * p.rotation;
+
+			_models[i] = glm::translate(_center) * glm::translate(p.position * DistanceScalar) * glm::scale(glm::vec3(p.radius * ScaleScalar)) * p.rotation;
 		}
 	}
 	_mesh->uploadBufferArray("m", _models);
