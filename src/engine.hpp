@@ -122,6 +122,7 @@ private:
 	void _initMeshes();
 	void _initGBuffers();
 	void _initLights();
+	void _initBillboard();
 
 	void _resolutionChanged();
 	void _updateMovement(float delta, bool updateCamera);

@@ -498,9 +498,9 @@ void Engine::_initMeshes() {
 									})
 			.finalize();
 	}
-	_entities.push_back(std::make_shared<Duck>());
-	_entities.push_back(std::make_shared<Earth>());
-	_entities.push_back(std::make_shared<Jeep>());
+	//_entities.push_back(std::make_shared<Duck>());
+	//_entities.push_back(std::make_shared<Earth>());
+	//_entities.push_back(std::make_shared<Jeep>());
 	_entities.push_back(std::make_shared<Plane>());
 	//_entities.push_back(std::make_shared<Triangle>());
 	{
@@ -592,6 +592,18 @@ void Engine::_initLights() {
 									glBindBuffer(GL_ARRAY_BUFFER, 0);
 								})
 		.finalize();
+}
+
+void Engine::_initBillboard() {
+	glm::vec3 particleCenter_worldspace = glm::vec3(0.5f, 0.5f, 0);
+	glm::vec3 cameraRightWorldSpace = {_view[0][0], _view[1][0] , _view[2][0]};
+	glm::vec3 cameraUpWorldSpace = {_view[0][1], _view[1][1], _view[2][1]};
+	static const GLfloat g_vertex_buffer_data[] = {
+		-0.5f, -0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		-0.5f, 0.5f, 0.0f,
+		0.5f, 0.5f, 0.0f,
+	};
 }
 
 void Engine::_resolutionChanged() { // TODO: don't call all the time
