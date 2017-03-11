@@ -9,8 +9,7 @@ public:
 private:
 	struct Particle {
 		glm::vec3 spawnPos, spawnSpeed, pos, speed;
-		unsigned char r, g, b, a; // Color
-		float size, angle, weight;
+		float size;
 		float spawnLife, life;
 		glm::mat4 m;
 	};

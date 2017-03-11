@@ -32,6 +32,7 @@ Particles::Particles(int amnt, std::shared_ptr<Mesh> mesh) : Entity(mesh){
 		p.life = p.spawnLife;
 		p.speed = p.spawnSpeed;
 		p.pos = p.spawnPos;
+		p.size = rand() % 2 + 0.5f;
 	}
 }
 
@@ -56,7 +57,7 @@ void Particles::update(float delta) {
 			p.pos = p.spawnPos;
 		}
 
-		p.m = glm::translate(p.pos) * glm::scale(glm::vec3(1.0f));
+		p.m = glm::translate(p.pos) * glm::scale(glm::vec3(p.size));
 		_matrices[i] = _particle[i].m;
 	}
 	_mesh->uploadBufferArray("m", _matrices);
