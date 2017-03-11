@@ -22,6 +22,12 @@ turtlegl.dir/
 <<<<<<< HEAD
 *engine.cpp~RF192eafaf.TMP
 engine.i-22ca9866
+sphere.i*
+triangle.i*
+earth.i*
+engine.i*
+assimpentity.i*
+plane.i*
 =======
 *.TMP
 >>>>>>> origin/master
