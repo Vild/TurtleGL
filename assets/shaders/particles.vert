@@ -2,15 +2,27 @@
 
 // NOTE: The locations must match ShaderAttributeID
 layout (location = 0) in vec3 vertPos;
-out vec3 worldPos;
+//layout (location = 1) in vec3 vertNormal;
+layout (location = 2) in vec3 vertColor;
+layout (location = 3) in vec2 vertUV;
+layout (location = 5) in mat4 m;
 
-uniform mat4 vp;
+out vec3 vPos;
+//out vec3 vNormal;
+out vec3 vColor;
+out vec2 vUV;
+
+uniform vec3 particleCenter;
+uniform vec3 cameraRight_wPos;
+uniform vec3 cameraUp_wPos;
+uniform vec3 billboardSize;
+uniform mat4 worldView;
 
 void main() {
-	vec4 pos = m * vec4(vertPos, 1.0f);
-
+	vPos = particleCenter + (vec3(cameraRight_wPos * vertPos.x * billboardSize.x) + vec3(cameraUp_wPos * vertPos.y * billboardSize.y));
+	//vNormal = vertNormal;
 	vColor = vertColor;
 	vUV = vertUV;
 
-	gl_Position = vp * pos;
+	gl_Position = worldView * m * vec4(vPos, 1.0f);
 }

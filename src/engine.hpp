@@ -56,10 +56,15 @@ private:
 	std::shared_ptr<Mesh> _skybox;
 
 	std::vector<std::shared_ptr<Entity>> _entities;
-
 	// Shadowmap stuff
 	std::shared_ptr<ShaderProgram> _shadowmapProgram;
 	std::shared_ptr<GBuffer> _shadowmapFBO;
+
+	// Billboard Particle stuff
+	std::shared_ptr<ShaderProgram> _particleProgram;
+	std::shared_ptr<Entity> _particles;
+	glm::vec3 cameraRightWorldSpace;
+	glm::vec3 cameraUpWorldSpace;
 
 	// Deferred stuff
 	std::shared_ptr<ShaderProgram> _deferredProgram;
@@ -127,4 +132,5 @@ private:
 	void _resolutionChanged();
 	void _updateMovement(float delta, bool updateCamera);
 	void _updateLights();
+	void _updateParticles();
 };
