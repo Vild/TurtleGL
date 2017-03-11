@@ -38,21 +38,7 @@ ShaderUnit::ShaderUnit(const std::string& file, ShaderType type) {
 		std::vector<GLchar> errorLog(len);
 		glGetShaderInfoLog(_unit, len, &len, errorLog.data());
 
-		const char* strtype;
-		switch (type) {
-		case ShaderType::vertex:
-			strtype = "vertex";
-			break;
-		case ShaderType::fragment:
-			strtype = "fragment";
-			break;
-		case ShaderType::geometry:
-			strtype = "geometry";
-			break;
-		default:
-			strtype = "(unknown)";
-			break;
-		}
+		const char* strtype = toString(type);
 
 		char buf[0x1000];
 		snprintf(buf, sizeof(buf), "Compile %s in %s(%s) shader:\n%s\n", status == GL_FALSE ? "failure" : "successful", file.c_str(), strtype, errorLog.data());
@@ -142,12 +128,7 @@ ShaderProgram& ShaderProgram::bind() {
 	return *this;
 }
 
-/*GLint ShaderProgram::getAttribute(const std::string& name) const {
-	GLint loc = glGetAttribLocation(_program, name.c_str());
-
-	if (loc == -1) {
-		// throw ShaderProgramException(std::string("Uniform not found: %s") + name);
-		std::cerr << "Attribute not found: " << name << std::endl;
-	}
-	return loc;
-}*/
+ShaderProgram& ShaderProgram::compute(const glm::ivec3& groups) {
+	glDispatchCompute(groups.x, groups.y, groups.z);
+	return *this;
+}

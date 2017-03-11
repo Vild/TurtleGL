@@ -104,6 +104,7 @@ private:
 	// Settings (OpenGL)
 	bool _setting_ogl_doBackFaceCulling = true;
 	bool _setting_ogl_renderLights = true;
+	bool _setting_ogl_doBlur = true;
 
 	// Settings (Shaders)
 	bool _setting_base_doBackFaceCulling = true;

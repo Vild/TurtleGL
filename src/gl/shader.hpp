@@ -25,8 +25,24 @@ enum ShaderAttributeID : GLint {
 enum class ShaderType {
 	vertex = GL_VERTEX_SHADER,		 //
 	fragment = GL_FRAGMENT_SHADER, //
-	geometry = GL_GEOMETRY_SHADER	//
+	geometry = GL_GEOMETRY_SHADER, //
+	compute = GL_COMPUTE_SHADER		 //
 };
+
+inline const char* toString(ShaderType shader) {
+	switch (shader) {
+	case ShaderType::vertex:
+		return "Vertex";
+	case ShaderType::fragment:
+		return "Fragment";
+	case ShaderType::geometry:
+		return "Geometry";
+	case ShaderType::compute:
+		return "Compute";
+	default:
+		return "[Unknown ShaderType]";
+	}
+}
 
 class ShaderException : public std::exception {
 public:
@@ -104,8 +120,7 @@ public:
 	ShaderProgram& addUniformBuffer(const std::string& name, std::shared_ptr<UniformBuffer> buffer, GLuint bindingID);
 
 	ShaderProgram& bind();
-
-	// GLint getAttribute(const std::string& name) const;
+	ShaderProgram& compute(const glm::ivec3& groups); /// Only valid for compute shaders
 
 	template <typename T>
 	ShaderProgram& setUniform(const std::string& name, const T& value) {

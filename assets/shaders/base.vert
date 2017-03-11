@@ -1,4 +1,4 @@
-#version 330 core
+#version 430 core
 
 // NOTE: The locations must match ShaderAttributeID
 layout (location = 0) in vec3 vertPos;
