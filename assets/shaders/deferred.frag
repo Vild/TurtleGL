@@ -69,13 +69,13 @@ void main() {
 
 		if (setting_enableShadow && shadowCoord.w > 1) {
 			shadow = 0;
-
-			for (int i = 0; i < setting_pcfSamples; i++) {
-				float indexA = (random(vec4(pos.xyx, i)) * 0.2) * 1;
-				float indexB = (random(vec4(pos.yxy, i)) * 0.2) * 1;
-				shadow += textureProj(shadowMap, shadowCoord + vec4(indexA, indexB, 0, 0));
+			int half = setting_pcfSamples/2;
+			for (int x = 0; x < setting_pcfSamples; x++) {
+				for(int y = 0; y < setting_pcfSamples; y++){
+					shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(x-half, y-half));
+				}
 			}
-			shadow /= setting_pcfSamples;
+			shadow /= setting_pcfSamples * setting_pcfSamples;
 		}
 
 		vec3 result = vec3(0);

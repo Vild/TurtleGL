@@ -15,6 +15,7 @@
 #include "entity/jeep.hpp"
 #include "entity/plane.hpp"
 #include "entity/triangle.hpp"
+#include "entity/particles.hpp"
 
 Engine::~Engine() {
 	IMG_Quit();
@@ -229,6 +230,7 @@ int Engine::run() {
 
 		for (std::shared_ptr<Entity> entity : _entities)
 			entity->update(delta);
+		_particles->update(delta);
 
 		// Uncomment to show shadowmap on Plane entitiy
 		// std::dynamic_pointer_cast<AssimpEntity>(_entities[3])->setTexture(_shadowmapFBO->getAttachments()[0].texture);
@@ -239,10 +241,12 @@ int Engine::run() {
 		_shadowmapProgram->setUniform("p", _lightP);
 		for (std::shared_ptr<Entity> entity : _entities)
 			entity->render();
+		//_particles->render();
+
 		glCullFace(GL_BACK);
 
 		glViewport(0, 0, _width, _height);
-
+		
 		// Render step 2 - Render everything to deferredFB
 		_deferred->bind();
 		glClearColor(0, 0, 0, 1);
@@ -254,6 +258,10 @@ int Engine::run() {
 		_baseProgram->setUniform("s", _lightS);
 		for (std::shared_ptr<Entity> entity : _entities)
 			entity->render();
+
+		// Particle stuff
+		_particleProgram->bind().setUniform("worldView", vp);
+		_particles->render();
 
 		// Render step 3 - Render to screen
 		_screen->bind();
@@ -321,6 +329,7 @@ void Engine::_init() {
 	_textureManager = std::make_shared<TextureManager>(); // TODO: Move to own function?
 	_initShaders();
 	_initMeshes();
+	_initBillboard();
 	_initGBuffers();
 	_initLights();
 }
@@ -448,6 +457,21 @@ void Engine::_initShaders() {
 		_skyboxProgram->setUniform("diffuseTexture", 0).setUniform("normalTexture", 1);
 	}
 	{
+		_particleProgram = std::make_shared<ShaderProgram>();
+		_particleProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/particles.vert", ShaderType::vertex))
+			.attach(std::make_shared<ShaderUnit>("assets/shaders/particles.frag", ShaderType::fragment))
+			.finalize();
+		_particleProgram->bind().addUniform("particleCenter")
+			.addUniform("cameraRight_wPos")
+			.addUniform("cameraUp_wPos")
+			.addUniform("billboardSize")
+			.addUniform("worldView")
+			.addUniform("diffuseTexture")
+			.addUniform("normalTexture")
+			.addUniform("setting_defaultSpecular");
+	}
+
+	{
 		_deferredProgram = std::make_shared<ShaderProgram>();
 		_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.frag", ShaderType::fragment))
@@ -498,9 +522,9 @@ void Engine::_initMeshes() {
 									})
 			.finalize();
 	}
-	_entities.push_back(std::make_shared<Duck>());
-	_entities.push_back(std::make_shared<Earth>());
-	_entities.push_back(std::make_shared<Jeep>());
+	//_entities.push_back(std::make_shared<Duck>());
+	//_entities.push_back(std::make_shared<Earth>());
+	//_entities.push_back(std::make_shared<Jeep>());
 	_entities.push_back(std::make_shared<Plane>());
 	//_entities.push_back(std::make_shared<Triangle>());
 	{
@@ -594,10 +618,35 @@ void Engine::_initLights() {
 		.finalize();
 }
 
+void Engine::_initBillboard() {
+	glm::vec3 particleCenter_worldspace = glm::vec3(0, 0, 0);
+	glm::vec3 billboardSize = glm::vec3(2, 2, 0);
+	// What happens next is the same thing as multiplying the matrix that goes from camera space
+	// (camera space = view space) to world space, which is the inverse of view matrix. 
+	glm::vec3 cameraRightWorldSpace = {_view[0][0], _view[1][0] , _view[2][0]};
+	glm::vec3 cameraUpWorldSpace = {_view[0][1], _view[1][1], _view[2][1]};
+	_particleProgram->bind().setUniform("particleCenter", particleCenter_worldspace)
+		.setUniform("cameraRight_wPos", cameraRightWorldSpace)
+		.setUniform("cameraUp_wPos", cameraUpWorldSpace)
+		.setUniform("billboardSize", billboardSize);
+	std::vector<Vertex> verticies = {
+		Vertex{ glm::vec3{ -1, 1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 1 } },
+		Vertex{ glm::vec3{ 1, 1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 1, 1 } },
+		Vertex{ glm::vec3{ 1, -1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 1, 0 } },
+		Vertex{ glm::vec3{ -1, -1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 0 } },
+	};
+	std::vector<GLuint> indicies = { 0, 2, 1, 2, 0, 3 };
+	_particles = std::make_shared<Particles>(1000, std::make_shared<Mesh>(verticies, indicies));
+}
+
 void Engine::_resolutionChanged() { // TODO: don't call all the time
 	_projection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 60.0f);
 	glViewport(0, 0, _width, _height);
 	_initGBuffers();
+}
+
+void Engine::_updateParticles() {
+	
 }
 
 void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't call all the time
@@ -642,6 +691,11 @@ void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't ca
 	_view = glm::lookAt(_position, _position + forward, up);
 	_baseProgram->bind().setUniform("cameraPos", _position);
 	_deferredProgram->bind().setUniform("cameraPos", _position);
+
+	cameraRightWorldSpace = { _view[0][0], _view[1][0] , _view[2][0] };
+	cameraUpWorldSpace = { _view[0][1], _view[1][1], _view[2][1] };
+	_particleProgram->bind().setUniform("cameraRight_wPos", cameraRightWorldSpace)
+		.setUniform("cameraUp_wPos", cameraUpWorldSpace);
 }
 
 void Engine::_updateLights() {
