@@ -13,11 +13,8 @@
 #include "entity/box.hpp"
 #include "entity/earth.hpp"
 #include "entity/duck.hpp"
-<<<<<<< HEAD
 #include "entity/plane.hpp"
-=======
 #include "entity/triangle.hpp"
->>>>>>> origin/master
 
 Engine::~Engine() {
 	IMG_Quit();
@@ -34,8 +31,6 @@ int Engine::run() {
 	_quit = false;
 	int fps = 0;
 	uint32_t lastTime = SDL_GetTicks();
-
-	bool showSettings = false;
 
 	_resolutionChanged();
 	_updateMovement(0, false);
@@ -102,18 +97,17 @@ int Engine::run() {
 
 		{
 			ImGui::SetNextWindowPos(ImVec2(8, 8), ImGuiSetCond_Always);
-			ImGui::SetNextWindowSize(ImVec2(100, 100), ImGuiSetCond_FirstUseEver);
-			ImGui::Begin("Info panel", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
+			ImGui::SetNextWindowSize(ImVec2(384, 32), ImGuiSetCond_Once);
+			ImGui::Begin("Info panel", NULL, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-			if (!showSettings && ImGui::Button("Show settings"))
-				showSettings = !showSettings;
 			ImGui::End();
 		}
 
-		if (showSettings) {
+		{
 			ImGui::SetNextWindowPos(ImVec2(8, 48), ImGuiSetCond_Once);
-			ImGui::SetNextWindowSize(ImVec2(40, 80), ImGuiSetCond_FirstUseEver);
-			ImGui::Begin("Settings Window", &showSettings);
+			ImGui::SetNextWindowSize(ImVec2(384, 512), ImGuiSetCond_Once);
+			ImGui::SetNextWindowCollapsed(true, ImGuiSetCond_Once);
+			ImGui::Begin("Settings Window");
 			if (ImGui::CollapsingHeader("OpenGL")) {
 				if (ImGui::Checkbox("Backface culling", &_setting_ogl_doBackFaceCulling)) {
 					if (_setting_ogl_doBackFaceCulling)
@@ -131,7 +125,7 @@ int Engine::run() {
 
 				ImGui::Separator();
 
-				if (ImGui::DragFloat("Default Specular", &_setting_base_defaultSpecular, 0.01, 0, 1))
+				if (ImGui::DragFloat("Default Specular", &_setting_base_defaultSpecular, 0.005, 0, 1))
 					_baseProgram->setUniform("setting_defaultSpecular", _setting_base_defaultSpecular);
 			}
 
@@ -148,7 +142,7 @@ int Engine::run() {
 
 				ImGui::Separator();
 
-				if (ImGui::DragFloat("Shininess", &_setting_deferred_shininess, 1, 0, 256))
+				if (ImGui::DragFloat("Shininess", &_setting_deferred_shininess, 0.1, 0.1, 256))
 					_deferredProgram->setUniform("setting_shininess", _setting_deferred_shininess);
 			}
 
@@ -168,9 +162,16 @@ int Engine::run() {
 					ImGui::PopStyleColor();
 
 					if (ImGui::BeginPopup((std::string("color") + std::to_string(i)).c_str())) {
-						ImGui::Text("Edit lights color");
-						if (ImGui::ColorEdit3("##edit", (float*)&_lights[i].color))
+						ImGui::Text((std::string("Editing Light #") + std::to_string(i)).c_str());
+						if (ImGui::ColorEdit3("##color", glm::value_ptr(_lights[i].color))) {
 							_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);
+						}
+
+						if (ImGui::DragFloat3("##pos", glm::value_ptr(_lights[i].pos), 0.1)) {
+							_lightsBuffer->setDataRaw(&_lights[0], sizeof(Light) * LIGHT_COUNT);
+							for (int i = 0; i < LIGHT_COUNT; i++)
+								_lightsMatrix[i] = glm::scale(glm::translate(_lights[i].pos), glm::vec3(0.5f));
+						}
 
 						if (ImGui::Button("Close"))
 							ImGui::CloseCurrentPopup();
@@ -197,11 +198,11 @@ int Engine::run() {
 		_shadowmapFBO->bind();
 		glViewport(0, 0, 1024, 1024);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		
+
 		for (std::shared_ptr<Entity> entity : _entities) {
 			entity->update(delta);
 		}
-		
+
 		_shadowmapProgram->bind();
 		for (std::shared_ptr<Entity> entity : _entities) {
 			entity->render();
@@ -212,7 +213,7 @@ int Engine::run() {
 		_deferred->bind();
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+
 		_baseProgram->bind();
 		_baseProgram->setUniform("vp", vp);
 		for (std::shared_ptr<Entity> entity : _entities) {
@@ -457,11 +458,8 @@ void Engine::_initMeshes() {
 	_entities.push_back(std::make_shared<Box>());
 	_entities.push_back(std::make_shared<Earth>());
 	_entities.push_back(std::make_shared<Duck>());
-<<<<<<< HEAD
 	_entities.push_back(std::make_shared<Plane>());
-=======
 	_entities.push_back(std::make_shared<Triangle>());
->>>>>>> origin/master
 	{
 		std::vector<Vertex> verticies = {
 			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//
