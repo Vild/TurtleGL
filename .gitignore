@@ -19,27 +19,20 @@ CMakeFiles/
 turtlegl.dir/
 *turtlegl.VC.db
 *turtlegl.VC.VC.opendb
-<<<<<<< HEAD
 *engine.cpp~RF192eafaf.TMP
-engine.i-22ca9866
-<<<<<<< HEAD
 sphere.i*
 triangle.i*
 earth.i*
 engine.i*
 assimpentity.i*
 plane.i*
-=======
 engine.i*
 earth.i*
 plane.i*
 sphere.i*
 triangle.i*
 assimpentity.i*
->>>>>>> refs/remotes/origin/Billboard-Particles
-=======
 *.TMP
->>>>>>> origin/master
 Debug/
 *.sln
 windows/
