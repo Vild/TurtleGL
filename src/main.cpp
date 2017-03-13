@@ -2,8 +2,11 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "engine.hpp"
 #include <cstdio>
+#include <stdlib.h>
+#include <time.h>
 
 int main(int argc, char** argv) {
+	srand(time(NULL));
 	try {
 		return Engine::getInstance().run();
 	} catch (std::exception& e) {

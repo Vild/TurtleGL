@@ -32,12 +32,18 @@ Particles::Particles(int amnt, std::shared_ptr<Mesh> mesh) : Entity(mesh){
 		p.life = p.spawnLife;
 		p.speed = p.spawnSpeed;
 		p.pos = p.spawnPos;
-		p.size = rand() % 2 + 0.5f;
 	}
+	_texture = std::make_shared<Texture>("assets//textures//stevan_god.png");
 }
 
 Particles::~Particles() {
 	
+}
+
+void Particles::render(GLenum drawMode) {
+	_texture->bind(0);
+	// Should probably have normal texture here.
+	Entity::render(drawMode);
 }
 
 void Particles::update(float delta) {
@@ -57,7 +63,7 @@ void Particles::update(float delta) {
 			p.pos = p.spawnPos;
 		}
 
-		p.m = glm::translate(p.pos) * glm::scale(glm::vec3(p.size));
+		p.m = glm::translate(p.pos) * glm::scale(glm::vec3(1.0f));
 		_matrices[i] = _particle[i].m;
 	}
 	_mesh->uploadBufferArray("m", _matrices);

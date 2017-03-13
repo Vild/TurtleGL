@@ -260,7 +260,7 @@ int Engine::run() {
 			entity->render();
 
 		// Particle stuff
-		_particleProgram->bind().setUniform("worldView", vp);
+		_particleProgram->bind().setUniform("viewProj", vp);
 		_particles->render();
 
 		// Render step 3 - Render to screen
@@ -464,8 +464,9 @@ void Engine::_initShaders() {
 		_particleProgram->bind().addUniform("particleCenter")
 			.addUniform("cameraRight_wPos")
 			.addUniform("cameraUp_wPos")
+			.addUniform("cameraPos")
 			.addUniform("billboardSize")
-			.addUniform("worldView")
+			.addUniform("viewProj")
 			.addUniform("diffuseTexture")
 			.addUniform("normalTexture")
 			.addUniform("setting_defaultSpecular");
@@ -620,7 +621,7 @@ void Engine::_initLights() {
 
 void Engine::_initBillboard() {
 	glm::vec3 particleCenter_worldspace = glm::vec3(0, 0, 0);
-	glm::vec3 billboardSize = glm::vec3(2, 2, 0);
+	glm::vec3 billboardSize = glm::vec3(0.4, 0.4, 0);
 	// What happens next is the same thing as multiplying the matrix that goes from camera space
 	// (camera space = view space) to world space, which is the inverse of view matrix. 
 	glm::vec3 cameraRightWorldSpace = {_view[0][0], _view[1][0] , _view[2][0]};
@@ -630,10 +631,10 @@ void Engine::_initBillboard() {
 		.setUniform("cameraUp_wPos", cameraUpWorldSpace)
 		.setUniform("billboardSize", billboardSize);
 	std::vector<Vertex> verticies = {
-		Vertex{ glm::vec3{ -1, 1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 1 } },
-		Vertex{ glm::vec3{ 1, 1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 1, 1 } },
-		Vertex{ glm::vec3{ 1, -1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 1, 0 } },
-		Vertex{ glm::vec3{ -1, -1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 0 } },
+		Vertex{ glm::vec3{ -0.2, 0.2, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 0 } },
+		Vertex{ glm::vec3{ 0.2, 0.2, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 1, 0 } },
+		Vertex{ glm::vec3{ 0.2, -0.2, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 1, 1 } },
+		Vertex{ glm::vec3{ -0.2, -0.2, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 1 } },
 	};
 	std::vector<GLuint> indicies = { 0, 2, 1, 2, 0, 3 };
 	_particles = std::make_shared<Particles>(1000, std::make_shared<Mesh>(verticies, indicies));
@@ -691,6 +692,7 @@ void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't ca
 	_view = glm::lookAt(_position, _position + forward, up);
 	_baseProgram->bind().setUniform("cameraPos", _position);
 	_deferredProgram->bind().setUniform("cameraPos", _position);
+	_particleProgram->bind().setUniform("cameraPos", _position);
 
 	cameraRightWorldSpace = { _view[0][0], _view[1][0] , _view[2][0] };
 	cameraUpWorldSpace = { _view[0][1], _view[1][1], _view[2][1] };
