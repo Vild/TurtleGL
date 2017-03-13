@@ -19,6 +19,7 @@ void main() {
 
 	//vec3 normal = normalize(texture2D(normalTexture, vUV).rgb * 2.0 - vec3(1.0));
 	//defNormal = normalize(gTBN * normal);
+	defNormal = normalize(vNormal);
 
 	defDiffuseSpecular.rgb = vColor * texture(diffuseTexture, vUV).rgb;
 	defDiffuseSpecular.a = setting_defaultSpecular;
