@@ -69,10 +69,10 @@ void main() {
 
 		if (setting_enableShadow && shadowCoord.w > 1) {
 			shadow = 0;
-			int half = setting_pcfSamples/2;
+			int halfAmount = setting_pcfSamples/2;
 			for (int x = 0; x < setting_pcfSamples; x++) {
 				for(int y = 0; y < setting_pcfSamples; y++){
-					shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(x-half, y-half));
+					shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(x - halfAmount, y - halfAmount));
 				}
 			}
 			shadow /= setting_pcfSamples * setting_pcfSamples;

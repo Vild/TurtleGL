@@ -23,7 +23,7 @@ Particles::Particles(int amnt, std::shared_ptr<Mesh> mesh) : Entity(mesh){
 		.finalize();
 	_particle.resize(_drawCount);
 	_matrices.resize(_drawCount);
-	for (int i = 0; i < _particle.size(); i++) {
+	for (unsigned int i = 0; i < _particle.size(); i++) {
 		Particle& p = _particle[i];
 		p.spawnLife = rand() % 10 + 1;
 		p.spawnPos = glm::vec3(0,5,0);
@@ -41,7 +41,7 @@ Particles::~Particles() {
 }
 
 void Particles::update(float delta) {
-	for (int i = 0; i < _particle.size(); i++) {
+	for (unsigned int i = 0; i < _particle.size(); i++) {
 		Particle& p = _particle[i];
 		if (p.life > 0.0f) {
 			p.life -= delta;
