@@ -246,7 +246,7 @@ int Engine::run() {
 		glCullFace(GL_BACK);
 
 		glViewport(0, 0, _width, _height);
-		
+
 		// Render step 2 - Render everything to deferredFB
 		_deferred->bind();
 		glClearColor(0, 0, 0, 1);
@@ -461,7 +461,8 @@ void Engine::_initShaders() {
 		_particleProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/particles.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/particles.frag", ShaderType::fragment))
 			.finalize();
-		_particleProgram->bind().addUniform("particleCenter")
+		_particleProgram->bind()
+			.addUniform("particleCenter")
 			.addUniform("cameraRight_wPos")
 			.addUniform("cameraUp_wPos")
 			.addUniform("cameraPos")
@@ -523,9 +524,9 @@ void Engine::_initMeshes() {
 									})
 			.finalize();
 	}
-	//_entities.push_back(std::make_shared<Duck>());
-	//_entities.push_back(std::make_shared<Earth>());
-	//_entities.push_back(std::make_shared<Jeep>());
+	_entities.push_back(std::make_shared<Duck>());
+	_entities.push_back(std::make_shared<Earth>());
+	_entities.push_back(std::make_shared<Jeep>());
 	_entities.push_back(std::make_shared<Plane>());
 	//_entities.push_back(std::make_shared<Triangle>());
 	{
@@ -623,20 +624,20 @@ void Engine::_initBillboard() {
 	glm::vec3 particleCenter_worldspace = glm::vec3(0, 0, 0);
 	glm::vec3 billboardSize = glm::vec3(0.4, 0.4, 0);
 	// What happens next is the same thing as multiplying the matrix that goes from camera space
-	// (camera space = view space) to world space, which is the inverse of view matrix. 
-	glm::vec3 cameraRightWorldSpace = {_view[0][0], _view[1][0] , _view[2][0]};
+	// (camera space = view space) to world space, which is the inverse of view matrix.
+	glm::vec3 cameraRightWorldSpace = {_view[0][0], _view[1][0], _view[2][0]};
 	glm::vec3 cameraUpWorldSpace = {_view[0][1], _view[1][1], _view[2][1]};
-	_particleProgram->bind().setUniform("particleCenter", particleCenter_worldspace)
+	_particleProgram->bind()
+		.setUniform("particleCenter", particleCenter_worldspace)
 		.setUniform("cameraRight_wPos", cameraRightWorldSpace)
 		.setUniform("cameraUp_wPos", cameraUpWorldSpace)
 		.setUniform("billboardSize", billboardSize);
 	std::vector<Vertex> verticies = {
-		Vertex{ glm::vec3{ -0.2, 0.2, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 0 } },
-		Vertex{ glm::vec3{ 0.2, 0.2, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 1, 0 } },
-		Vertex{ glm::vec3{ 0.2, -0.2, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 1, 1 } },
-		Vertex{ glm::vec3{ -0.2, -0.2, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 1 } },
+		Vertex{glm::vec3{-0.2, 0.2, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 0}}, Vertex{glm::vec3{0.2, 0.2, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {1, 0}},
+		Vertex{glm::vec3{0.2, -0.2, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {1, 1}},
+		Vertex{glm::vec3{-0.2, -0.2, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},
 	};
-	std::vector<GLuint> indicies = { 0, 2, 1, 2, 0, 3 };
+	std::vector<GLuint> indicies = {0, 2, 1, 2, 0, 3};
 	_particles = std::make_shared<Particles>(1000, std::make_shared<Mesh>(verticies, indicies));
 }
 
@@ -646,9 +647,7 @@ void Engine::_resolutionChanged() { // TODO: don't call all the time
 	_initGBuffers();
 }
 
-void Engine::_updateParticles() {
-	
-}
+void Engine::_updateParticles() {}
 
 void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't call all the time
 	if (updateCamera) {
@@ -694,10 +693,9 @@ void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't ca
 	_deferredProgram->bind().setUniform("cameraPos", _position);
 	_particleProgram->bind().setUniform("cameraPos", _position);
 
-	cameraRightWorldSpace = { _view[0][0], _view[1][0] , _view[2][0] };
-	cameraUpWorldSpace = { _view[0][1], _view[1][1], _view[2][1] };
-	_particleProgram->bind().setUniform("cameraRight_wPos", cameraRightWorldSpace)
-		.setUniform("cameraUp_wPos", cameraUpWorldSpace);
+	cameraRightWorldSpace = {_view[0][0], _view[1][0], _view[2][0]};
+	cameraUpWorldSpace = {_view[0][1], _view[1][1], _view[2][1]};
+	_particleProgram->bind().setUniform("cameraRight_wPos", cameraRightWorldSpace).setUniform("cameraUp_wPos", cameraUpWorldSpace);
 }
 
 void Engine::_updateLights() {
