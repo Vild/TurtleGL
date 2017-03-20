@@ -56,6 +56,7 @@ private:
 	std::shared_ptr<Mesh> _skybox;
 
 	std::vector<std::shared_ptr<Entity>> _entities;
+
 	// Shadowmap stuff
 	std::shared_ptr<ShaderProgram> _shadowmapProgram;
 	std::shared_ptr<GBuffer> _shadowmapFBO;
@@ -65,6 +66,13 @@ private:
 	std::shared_ptr<Entity> _particles;
 	glm::vec3 cameraRightWorldSpace;
 	glm::vec3 cameraUpWorldSpace;
+
+	// Gaussian blur stuff
+	std::shared_ptr<ShaderProgram> _gaussianProgram;
+	std::shared_ptr<GBuffer> _gaussianFBO0;
+	std::shared_ptr<GBuffer> _gaussianFBO1;
+	std::shared_ptr<Mesh> _gaussianPlane;
+	std::shared_ptr<ShaderProgram> _finalProgram;
 
 	// Deferred stuff
 	std::shared_ptr<ShaderProgram> _deferredProgram;
@@ -106,6 +114,7 @@ private:
 	bool _setting_ogl_renderLights = true;
 	bool _setting_ogl_doBlur = true;
 
+
 	// Settings (Shaders)
 	bool _setting_base_doBackFaceCulling = true;
 	float _setting_base_defaultSpecular = 0.5f;
@@ -116,6 +125,9 @@ private:
 	bool _setting_deferred_enableSpecular = true;
 	float _setting_deferred_shininess = 64.0f;
 	int _setting_deferred_pcfSamples = 8;
+
+	bool _setting_filter_enableGaussian = true;
+	int _setting_filter_samples = 2;
 
 	Engine() {}
 	virtual ~Engine();
@@ -133,5 +145,4 @@ private:
 	void _resolutionChanged();
 	void _updateMovement(float delta, bool updateCamera);
 	void _updateLights();
-	void _updateParticles();
 };

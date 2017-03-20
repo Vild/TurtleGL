@@ -214,6 +214,16 @@ int Engine::run() {
 
 				ImGui::Columns(1);
 			}
+
+			if (ImGui::CollapsingHeader("Filter")) {
+				if (ImGui::Checkbox("Gaussian", &_setting_filter_enableGaussian)) {
+					_gaussianProgram->bind()
+						.setUniform("setting_enableGaussian", _setting_filter_enableGaussian);
+				}
+				if (ImGui::DragInt("Samples", &_setting_filter_samples, 1, 1, 100)) {
+					_setting_filter_samples = glm::clamp(_setting_filter_samples, 1, 100);
+				}
+			}
 			ImGui::End();
 		}
 
@@ -263,8 +273,8 @@ int Engine::run() {
 		_particleProgram->bind().setUniform("viewProj", vp);
 		_particles->render();
 
-		// Render step 3 - Render to screen
-		_screen->bind();
+		// Render step 3 - Render to GaussianFBO for the final image
+		_gaussianFBO1->bind();
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -279,18 +289,52 @@ int Engine::run() {
 			.setUniform("defDiffuseSpecular", 12)
 			.setUniform("defShadowCoord", 13)
 			.setUniform("shadowMap", 14);
-
 		_deferredProgram->setUniform("vp", glm::mat4(1));
 		_deferredPlane->render();
 
-		// Render step 3 - Render lightsources
-		// Render step 3.1 - Move deferred depth buffer to screen
+		// Image processing - Pingpong between rendering to FBO0 and FBO1
+		if (_setting_filter_enableGaussian) {
+			GLboolean horizontal = true;
+			for (int i = 0; i < _setting_filter_samples * 2; i++) {
+				if (i % 2 == 0) {
+					_gaussianFBO0->bind();
+					_gaussianFBO1->getAttachments()[0].texture->bind(10);
+					_gaussianProgram->bind();
+					_gaussianProgram->setUniform("diffuseTexture", 10)
+					.setUniform("vp", glm::mat4(1))
+					.setUniform("horizontal", true);
+				}
+				else {
+					_gaussianFBO1->bind(0);
+					_gaussianFBO0->getAttachments()[0].texture->bind(10);
+					_gaussianProgram->bind();
+					_gaussianProgram->setUniform("diffuseTexture", 10)
+					.setUniform("vp", glm::mat4(1))
+					.setUniform("horizontal", false);
+				}
+				_gaussianPlane->render();
+			}
+		}
+
+		// Render step 4 - Render final image to screen.
+		_screen->bind();
+		glClearColor(0, 0, 0, 1);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		_gaussianFBO1->getAttachments()[0].texture->bind(10);
+		_finalProgram->bind();
+		_finalProgram->setUniform("gaussianImage", 10)
+			.setUniform("vp", glm::mat4(1));
+		_gaussianPlane->render();
+
+		// Render step 5 - Render lightsources
+		// Render step 5.1 - Move deferred depth buffer to screen
 		_deferred->bind(true, false);
 		_screen->bind(false, true);
 		glBlitFramebuffer(0, 0, _width, _height, 0, 0, _width, _height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 		_screen->bind();
 
-		// Render step 3.2 - Render lightsources as cubes
+		// Render step 5.2 - Render lightsources as cubes
 		if (_setting_ogl_renderLights) {
 			_lightProgram->bind();
 			_lightBulb->uploadBufferArray("m", _lightsMatrix);
@@ -310,6 +354,7 @@ int Engine::run() {
 			if (_setting_ogl_doBackFaceCulling)
 				glEnable(GL_CULL_FACE);
 		}
+
 
 		ImGui::Render();
 		fps++;
@@ -429,6 +474,27 @@ void Engine::_initShaders() {
 		_shadowmapProgram->bind().addUniform("v").addUniform("p");
 	}
 	{
+		_gaussianProgram = std::make_shared<ShaderProgram>();
+		_gaussianProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/gaussian.vert", ShaderType::vertex))
+			.attach(std::make_shared<ShaderUnit>("assets/shaders/gaussian.frag", ShaderType::fragment))
+			.finalize();
+		_gaussianProgram->bind().addUniform("diffuseTexture")
+			.addUniform("screenWidth")
+			.addUniform("screenHeight")
+			.addUniform("vp")
+			.addUniform("horizontal")
+			.addUniform("setting_enableGaussian");
+		_gaussianProgram->setUniform("setting_enableGaussian", _setting_filter_enableGaussian);
+	}
+	{
+		_finalProgram = std::make_shared<ShaderProgram>();
+		_finalProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/final.vert", ShaderType::vertex))
+			.attach(std::make_shared<ShaderUnit>("assets/shaders/final.frag", ShaderType::fragment))
+			.finalize();
+		_finalProgram->bind().addUniform("gaussianImage")
+			.addUniform("vp");
+	}
+	{
 		_baseProgram = std::make_shared<ShaderProgram>();
 		_baseProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/base.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/base.geom", ShaderType::geometry))
@@ -523,21 +589,48 @@ void Engine::_initMeshes() {
 									})
 			.finalize();
 	}
-	//_entities.push_back(std::make_shared<Duck>());
-	//_entities.push_back(std::make_shared<Earth>());
-	//_entities.push_back(std::make_shared<Jeep>());
+	_entities.push_back(std::make_shared<Duck>());
+	_entities.push_back(std::make_shared<Earth>());
+	_entities.push_back(std::make_shared<Jeep>());
 	_entities.push_back(std::make_shared<Plane>());
 	//_entities.push_back(std::make_shared<Triangle>());
 	{
-		std::vector<Vertex> verticies = {
+		std::vector<Vertex> vertices = {
 			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//
 			Vertex{glm::vec3{1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {1, 1}},		//
 			Vertex{glm::vec3{1, -1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {1, 0}},	//
 			Vertex{glm::vec3{-1, -1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 0}}, //
 		};
 		std::vector<GLuint> indicies = {0, 2, 1, 2, 0, 3};
-		_deferredPlane = std::make_shared<Mesh>(verticies, indicies);
+		_deferredPlane = std::make_shared<Mesh>(vertices, indicies);
 		_deferredPlane
+			->addBuffer("m",
+									[](GLuint id) {
+										glm::mat4 mData = glm::mat4(1);
+										glBindBuffer(GL_ARRAY_BUFFER, id);
+										glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4), glm::value_ptr(mData), GL_STATIC_DRAW); // Will only be uploaded once
+
+										for (int i = 0; i < 4; i++) {
+											glEnableVertexAttribArray(ShaderAttributeID::m + i);
+											glVertexAttribPointer(ShaderAttributeID::m + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (GLvoid*)(sizeof(glm::vec4) * i));
+											glVertexAttribDivisor(ShaderAttributeID::m + i, 1);
+										}
+
+										glBindBuffer(GL_ARRAY_BUFFER, 0);
+									})
+			.finalize();
+
+	}
+	{
+		std::vector<Vertex> vertices = {
+			Vertex{ glm::vec3{ -1, 1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 1 } },	//
+			Vertex{ glm::vec3{ 1, 1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 1, 1 } },		//
+			Vertex{ glm::vec3{ 1, -1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 1, 0 } },	//
+			Vertex{ glm::vec3{ -1, -1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 0 } }, //
+		};
+		std::vector<GLuint> indices = { 0, 2, 1, 2, 0, 3 };
+		_gaussianPlane = std::make_shared<Mesh>(vertices, indices);
+		_gaussianPlane
 			->addBuffer("m",
 									[](GLuint id) {
 										glm::mat4 mData = glm::mat4(1);
@@ -560,6 +653,12 @@ void Engine::_initGBuffers() {
 	_screen = std::make_shared<GBuffer>(0);
 	_shadowmapFBO = std::make_shared<GBuffer>();
 	_shadowmapFBO->bind().attachDepthTexture(0, _shadowmapSize, _shadowmapSize);
+
+	_gaussianFBO0 = std::make_shared<GBuffer>();
+	_gaussianFBO0->bind().attachTexture(0, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, 4);
+	_gaussianFBO1 = std::make_shared<GBuffer>();
+	_gaussianFBO1->bind().attachTexture(0, _width, _height, GL_RGBA, GL_UNSIGNED_BYTE, 4);
+
 	_deferred = std::make_shared<GBuffer>();
 	_deferred->bind()
 		.attachTexture(0, _width, _height, GL_RGB32F, GL_FLOAT, 3)			 // Position
@@ -637,17 +736,13 @@ void Engine::_initBillboard() {
 		Vertex{ glm::vec3{ -0.2, -0.2, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 1 } },
 	};
 	std::vector<GLuint> indicies = { 0, 2, 1, 2, 0, 3 };
-	_particles = std::make_shared<Particles>(1000, std::make_shared<Mesh>(verticies, indicies));
+	_particles = std::make_shared<Particles>(2, std::make_shared<Mesh>(verticies, indicies));
 }
 
 void Engine::_resolutionChanged() { // TODO: don't call all the time
 	_projection = glm::perspective(glm::radians(_fov), (float)_width / (float)_height, 0.1f, 60.0f);
 	glViewport(0, 0, _width, _height);
 	_initGBuffers();
-}
-
-void Engine::_updateParticles() {
-	
 }
 
 void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't call all the time

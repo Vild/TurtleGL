@@ -21,6 +21,7 @@ layout (std140) uniform Lights {
 	Light lights[LIGHT_COUNT];
 };
 
+layout (location = 0) out vec4 gaussianImage;
 uniform vec3 cameraPos;
 
 uniform sampler2D defPos;
@@ -67,7 +68,7 @@ void main() {
 		// Shadow
 		float shadow = 1;
 
-		if (setting_enableShadow && shadowCoord.w > 1) {
+		if (setting_enableShadow && shadowCoord.w > 0) {
 			shadow = 0;
 			int halfAmount = setting_pcfSamples/2;
 			for (int x = 0; x < setting_pcfSamples; x++) {
@@ -91,6 +92,6 @@ void main() {
 
 		lighting = result * diffuse;
 	}
-
 	outColor = vec4(lighting, 1);
+	gaussianImage = vec4(lighting, 1.0f);
 }
