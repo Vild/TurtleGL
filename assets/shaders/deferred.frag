@@ -66,10 +66,9 @@ void main() {
 		vec3 ambientLight = diffuse * 0.1f;
 
 		// Shadow
-		float shadow = 1;
+		float shadow = setting_enableShadow ? 0 : 1;
 
-		if (setting_enableShadow && shadowCoord.w > 0) {
-			shadow = 0;
+		if (setting_enableShadow && shadowCoord.w > 1) {
 			int halfAmount = setting_pcfSamples/2;
 			for (int x = 0; x < setting_pcfSamples; x++) {
 				for(int y = 0; y < setting_pcfSamples; y++){
