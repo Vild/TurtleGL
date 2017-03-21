@@ -43,4 +43,3 @@ strace_out
 imgui.ini
 *.db
 TuretleGL.VC.VC.opendb
-*.opendb
