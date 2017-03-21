@@ -479,8 +479,6 @@ void Engine::_initShaders() {
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/gaussian.frag", ShaderType::fragment))
 			.finalize();
 		_gaussianProgram->bind().addUniform("diffuseTexture")
-			.addUniform("screenWidth")
-			.addUniform("screenHeight")
 			.addUniform("vp")
 			.addUniform("horizontal")
 			.addUniform("setting_enableGaussian");
