@@ -3,8 +3,9 @@
 #include "shader.hpp"
 
 #include <iostream>
+#include <cstring>
 
-ShaderUnit::ShaderUnit(const std::string& file, ShaderType type) {
+ShaderUnit::ShaderUnit(const std::string& file, ShaderType type, bool amdHack) {
 	FILE* fp = fopen(file.c_str(), "rb");
 	if (!fp)
 		throw ShaderUnitException("File not found!");
@@ -23,6 +24,18 @@ ShaderUnit::ShaderUnit(const std::string& file, ShaderType type) {
 
 	fread(str, size, 1, fp);
 	fclose(fp);
+
+	//XXX: amdHack, Last minute hack to make shader work on AMD hardware
+	if (amdHack) {
+		char *search = strchr(str, '/');
+		while (search) {
+			if (strncmp(search, "// #define AMD_HACK", strlen("// #define AMD_HACK")) == 0) {
+				search[0] = search[1] = ' '; // Remove "//"
+				break;
+			}
+			search = strchr(search + 1, '/');
+		}
+	}
 
 	_unit = glCreateShader((GLenum)type);
 	glShaderSource(_unit, 1, &str, NULL);

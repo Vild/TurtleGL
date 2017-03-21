@@ -555,9 +555,13 @@ void Engine::_initShaders() {
 
 	{
 		_deferredProgram = std::make_shared<ShaderProgram>();
-		_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.vert", ShaderType::vertex))
-			.attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.frag", ShaderType::fragment))
-			.finalize();
+		_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.vert", ShaderType::vertex));
+		try {
+			_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.frag", ShaderType::fragment));
+		} catch (ShaderUnitException e) {
+			_deferredProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/deferred.frag", ShaderType::fragment, true));
+		}
+		_deferredProgram->finalize();
 		_deferredProgram->bind()
 			.addUniform("vp")
 			.addUniform("defPos")
