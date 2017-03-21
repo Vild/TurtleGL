@@ -488,7 +488,7 @@ void Engine::_initMeshes() {
 	_entities.push_back(std::make_shared<Plane>());
 	_entities.push_back(std::make_shared<Triangle>());
 	mainQuad = new MapQuad(nullptr, MapTools::mapBMPreader("assets/textures/map5.bmp"), MapTools::calculateNormals(MapTools::mapBMPreader("assets/textures/map5.bmp"), 129, 129), 129, 129, 0, 0);
-	MapTools::quadtreeSplit(mainQuad, 5, 129, 129);
+	MapTools::quadtreeSplit(mainQuad, 7, 129, 129);
 	_entities.push_back(std::shared_ptr<MapQuad>(mainQuad));
 	{
 		std::vector<Vertex> verticies = {

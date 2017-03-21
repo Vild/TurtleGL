@@ -186,7 +186,7 @@ namespace MapTools {//tools used for generating the map and maintaining the MapQ
 		return (plane * n);
 	}
 
-	glm::vec4* calculateFrustrumPlanes(glm::mat4 mvp) {//take mvp matrix and extract planes for frustrum culling (the planes should then be saved somewhere (inside the MapQuads, as pointers maybe?))
+	glm::vec4* calculateFrustrumPlanes(glm::mat4 mvp) {//take mvp matrix and extract planes for frustrum culling
 		glm::vec4* planes = new glm::vec4[6];
 
 		mvp = glm::transpose(mvp);

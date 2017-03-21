@@ -140,6 +140,7 @@ void MapQuad::setCenter() {//defines the quads center from its average height an
 }
 
 void MapQuad::setChildren(MapQuad* children[4]) {//assign new quads as children to this quad
+	hasChildren = true;
 	for (int i = 0; i < 4; i++) {
 		this->children[i] = children[i];
 	}
@@ -274,7 +275,7 @@ bool MapQuad::test(glm::vec4* planes, glm::mat4 vp) {//the culling process (plan
 		}
 	}
 	renderState = true;
-	if (children[0] != nullptr) {//if the quad has children, testing continues to them
+	if (hasChildren) {//if the quad has children, testing continues to them
 		for (int i = 0; i < 4; i++) {
 			children[i]->test(planes, vp);
 		}
@@ -284,17 +285,19 @@ bool MapQuad::test(glm::vec4* planes, glm::mat4 vp) {//the culling process (plan
 }
 
 void MapQuad::update(float delta) {
-	_mesh->uploadBufferData("m", model_matrix);
-	if (children[0] != nullptr) {
-		for (int i = 0; i < 4; i++) {
-			children[i]->update(delta);
+	if (renderState) {
+		_mesh->uploadBufferData("m", model_matrix);
+		if (hasChildren) {
+			for (int i = 0; i < 4; i++) {
+				children[i]->update(delta);
+			}
 		}
 	}
 }
 
 void MapQuad::cull() {
 	renderState = false;
-	if (children[0] != nullptr) {
+	if (hasChildren) {
 		for (int i = 0; i < 4; i++) {
 			children[i]->cull();
 		}
@@ -303,7 +306,11 @@ void MapQuad::cull() {
 
 void MapQuad::render(GLenum drawMode) {
 	if (renderState) {
-		if (children[0] != nullptr) {
+		bool allRender = true;
+		for (int i = 0; i < 4 && allRender && hasChildren; i++){
+			allRender = children[i]->getRenderState();
+		}
+		if (hasChildren && !allRender) {
 			for (int i = 0; i < 4; i++) {
 				children[i]->render();
 			}
@@ -349,6 +356,10 @@ bool MapQuad::isOutsideQuad(glm::vec3 position) {
 }
 glm::vec3 MapQuad::getCenter() {
 	return center;
+}
+
+bool MapQuad::getRenderState() {
+	return renderState;
 }
 
 
