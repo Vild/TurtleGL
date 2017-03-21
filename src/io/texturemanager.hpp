@@ -2,7 +2,6 @@
 
 #include <map>
 #include <memory>
-
 #include "../gl/texture.hpp"
 
 class TextureManager {

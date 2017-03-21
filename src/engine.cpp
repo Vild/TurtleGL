@@ -17,6 +17,12 @@
 #include "entity/triangle.hpp"
 #include "entity/particles.hpp"
 
+//#include "../entity/mapquad.hpp"
+
+#include "lib/MapTools.h"
+
+MapQuad* mainQuad;
+
 Engine::~Engine() {
 	IMG_Quit();
 
@@ -217,8 +223,7 @@ int Engine::run() {
 
 			if (ImGui::CollapsingHeader("Filter")) {
 				if (ImGui::Checkbox("Gaussian", &_setting_filter_enableGaussian)) {
-					_gaussianProgram->bind()
-						.setUniform("setting_enableGaussian", _setting_filter_enableGaussian);
+					_gaussianProgram->bind().setUniform("setting_enableGaussian", _setting_filter_enableGaussian);
 				}
 				if (ImGui::DragInt("Samples", &_setting_filter_samples, 1, 1, 100)) {
 					_setting_filter_samples = glm::clamp(_setting_filter_samples, 1, 100);
@@ -230,9 +235,28 @@ int Engine::run() {
 		uint32_t curTime = SDL_GetTicks();
 		float delta = (curTime - lastTime) / 1000.0f;
 		lastTime = curTime;
-		_updateMovement(delta, updateCamera);
-		glm::mat4 vp = _projection * _view;
 
+		_updateMovement(delta, updateCamera);
+
+		if (_setting_gravity) {
+			if (_position.y < mainQuad->pointOnMesh(_position).y + 1.f) {
+				_position.y = mainQuad->pointOnMesh(_position).y + 1.f;
+				gravAcceleration = 0;
+				grounded = true;
+			} else {
+				grounded = false;
+			}
+			if (!grounded) {
+				gravAcceleration += 0.0005f;
+				_position = _position + glm::vec3(0.0f, -1.0f, 0.0f) * gravAcceleration;
+			}
+		}
+
+		glm::mat4 vp = _projection * _view;
+		glm::mat4 vp2 = _projection * _view2;
+
+		// MapTools
+		mainQuad->test(MapTools::calculateFrustrumPlanes(vp2), vp2);
 		// Render step 1 - Render everything to shadowmapFBO
 		_shadowmapFBO->bind();
 		glViewport(0, 0, _shadowmapSize, _shadowmapSize);
@@ -300,17 +324,12 @@ int Engine::run() {
 					_gaussianFBO0->bind();
 					_gaussianFBO1->getAttachments()[0].texture->bind(10);
 					_gaussianProgram->bind();
-					_gaussianProgram->setUniform("diffuseTexture", 10)
-					.setUniform("vp", glm::mat4(1))
-					.setUniform("horizontal", true);
-				}
-				else {
+					_gaussianProgram->setUniform("diffuseTexture", 10).setUniform("vp", glm::mat4(1)).setUniform("horizontal", true);
+				} else {
 					_gaussianFBO1->bind(0);
 					_gaussianFBO0->getAttachments()[0].texture->bind(10);
 					_gaussianProgram->bind();
-					_gaussianProgram->setUniform("diffuseTexture", 10)
-					.setUniform("vp", glm::mat4(1))
-					.setUniform("horizontal", false);
+					_gaussianProgram->setUniform("diffuseTexture", 10).setUniform("vp", glm::mat4(1)).setUniform("horizontal", false);
 				}
 				_gaussianPlane->render();
 			}
@@ -320,11 +339,10 @@ int Engine::run() {
 		_screen->bind();
 		glClearColor(0, 0, 0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+
 		_gaussianFBO1->getAttachments()[0].texture->bind(10);
 		_finalProgram->bind();
-		_finalProgram->setUniform("gaussianImage", 10)
-			.setUniform("vp", glm::mat4(1));
+		_finalProgram->setUniform("gaussianImage", 10).setUniform("vp", glm::mat4(1));
 		_gaussianPlane->render();
 
 		// Render step 5 - Render lightsources
@@ -354,7 +372,6 @@ int Engine::run() {
 			if (_setting_ogl_doBackFaceCulling)
 				glEnable(GL_CULL_FACE);
 		}
-
 
 		ImGui::Render();
 		fps++;
@@ -489,8 +506,7 @@ void Engine::_initShaders() {
 		_finalProgram->attach(std::make_shared<ShaderUnit>("assets/shaders/final.vert", ShaderType::vertex))
 			.attach(std::make_shared<ShaderUnit>("assets/shaders/final.frag", ShaderType::fragment))
 			.finalize();
-		_finalProgram->bind().addUniform("gaussianImage")
-			.addUniform("vp");
+		_finalProgram->bind().addUniform("gaussianImage").addUniform("vp");
 	}
 	{
 		_baseProgram = std::make_shared<ShaderProgram>();
@@ -592,7 +608,11 @@ void Engine::_initMeshes() {
 	_entities.push_back(std::make_shared<Earth>());
 	_entities.push_back(std::make_shared<Jeep>());
 	_entities.push_back(std::make_shared<Plane>());
-	//_entities.push_back(std::make_shared<Triangle>());
+	_entities.push_back(std::make_shared<Triangle>());
+	mainQuad = new MapQuad(nullptr, MapTools::mapBMPreader("assets/textures/map5.bmp"),
+												 MapTools::calculateNormals(MapTools::mapBMPreader("assets/textures/map5.bmp"), 129, 129), 129, 129, 0, 0);
+	MapTools::quadtreeSplit(mainQuad, 5, 129, 129);
+	_entities.push_back(std::shared_ptr<MapQuad>(mainQuad));
 	{
 		std::vector<Vertex> vertices = {
 			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//
@@ -618,16 +638,15 @@ void Engine::_initMeshes() {
 										glBindBuffer(GL_ARRAY_BUFFER, 0);
 									})
 			.finalize();
-
 	}
 	{
 		std::vector<Vertex> vertices = {
-			Vertex{ glm::vec3{ -1, 1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 1 } },	//
-			Vertex{ glm::vec3{ 1, 1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 1, 1 } },		//
-			Vertex{ glm::vec3{ 1, -1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 1, 0 } },	//
-			Vertex{ glm::vec3{ -1, -1, 0 }, glm::vec3{ 0, 0, -1 },{ 1.0, 1.0, 1.0 },{ 0, 0 } }, //
+			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//
+			Vertex{glm::vec3{1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {1, 1}},		//
+			Vertex{glm::vec3{1, -1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {1, 0}},	//
+			Vertex{glm::vec3{-1, -1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 0}}, //
 		};
-		std::vector<GLuint> indices = { 0, 2, 1, 2, 0, 3 };
+		std::vector<GLuint> indices = {0, 2, 1, 2, 0, 3};
 		_gaussianPlane = std::make_shared<Mesh>(vertices, indices);
 		_gaussianPlane
 			->addBuffer("m",
@@ -734,7 +753,7 @@ void Engine::_initBillboard() {
 		Vertex{glm::vec3{0.2, -0.2, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {1, 1}},
 		Vertex{glm::vec3{-0.2, -0.2, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},
 	};
-	std::vector<GLuint> indicies = { 0, 2, 1, 2, 0, 3 };
+	std::vector<GLuint> indicies = {0, 2, 1, 2, 0, 3};
 	_particles = std::make_shared<Particles>(2, std::make_shared<Mesh>(verticies, indicies));
 }
 
@@ -783,7 +802,13 @@ void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't ca
 	if (state[SDL_SCANCODE_LCTRL])
 		_position -= glm::vec3(0, 1, 0) * delta * _speed;
 
-	_view = glm::lookAt(_position, _position + forward, up);
+	if (state[SDL_SCANCODE_X]) {
+		_view = glm::lookAt(glm::vec3(0.f, 10.f, 0.f), mainQuad->getCenter(), up);
+	} else {
+		_view = glm::lookAt(_position, _position + forward, up);
+	}
+	_view2 = glm::lookAt(_position, _position + forward, up);
+
 	_baseProgram->bind().setUniform("cameraPos", _position);
 	_deferredProgram->bind().setUniform("cameraPos", _position);
 	_particleProgram->bind().setUniform("cameraPos", _position);

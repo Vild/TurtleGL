@@ -41,3 +41,5 @@ project.log
 project.tasks
 strace_out
 imgui.ini
+*.db
+TuretleGL.VC.VC.opendb
