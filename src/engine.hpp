@@ -43,6 +43,7 @@ private:
 
 	glm::mat4 _projection;
 	glm::mat4 _view;
+	glm::mat4 _view2;
 
 	bool _quit;
 	SDL_Window* _window;
@@ -101,6 +102,10 @@ private:
 	bool _setting_deferred_enableDiffuse = true;
 	bool _setting_deferred_enableSpecular = true;
 	float _setting_deferred_shininess = 64.0f;
+
+	float gravAcceleration = 0.0f;
+	bool grounded = false;
+	bool _setting_gravity = true;
 
 	Engine() {}
 	virtual ~Engine();
