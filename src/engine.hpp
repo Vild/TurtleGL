@@ -43,6 +43,7 @@ private:
 
 	glm::mat4 _projection;
 	glm::mat4 _view;
+	glm::mat4 _view2;
 
 	bool _quit;
 	SDL_Window* _window;
@@ -127,6 +128,10 @@ private:
 
 	bool _setting_filter_enableGaussian = true;
 	int _setting_filter_samples = 2;
+
+	float gravAcceleration = 0.0f;
+	bool grounded = false;
+	bool _setting_gravity = true;
 
 	Engine() {}
 	virtual ~Engine();

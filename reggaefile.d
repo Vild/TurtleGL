@@ -14,7 +14,11 @@ Target[] MakeObjects(string[] files) {
 	Target[] objs;
 
 	foreach (f; dirEntries("src/", "*.cpp", SpanMode.breadth).filter!(x => !x.isDir)) {
-		auto head = executeShell("g++ -MM " ~ f).output.split(":")[1].replace("\n", " ").split(" ").filter!(s => !s.empty && s != "\\").map!(x => Target(x)).array;
+		auto dep = executeShell("g++ -MM " ~ f);
+		if (dep.status)
+			assert(0, dep.output);
+
+		auto head = dep.output.split(":")[1].replace("\n", " ").split(" ").filter!(s => !s.empty && s != "\\").map!(x => Target(x)).array;
 		objs ~= Target(f ~ ".o", CompileCommand.Compile, [Target(f)], head);
 	}
 

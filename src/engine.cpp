@@ -17,6 +17,12 @@
 #include "entity/triangle.hpp"
 #include "entity/particles.hpp"
 
+//#include "../entity/mapquad.hpp"
+
+#include "lib/MapTools.h"
+
+MapQuad* mainQuad;
+
 Engine::~Engine() {
 	IMG_Quit();
 
@@ -229,9 +235,28 @@ int Engine::run() {
 		uint32_t curTime = SDL_GetTicks();
 		float delta = (curTime - lastTime) / 1000.0f;
 		lastTime = curTime;
-		_updateMovement(delta, updateCamera);
-		glm::mat4 vp = _projection * _view;
 
+		_updateMovement(delta, updateCamera);
+
+		if (_setting_gravity) {
+			if (_position.y < mainQuad->pointOnMesh(_position).y + 1.f) {
+				_position.y = mainQuad->pointOnMesh(_position).y + 1.f;
+				gravAcceleration = 0;
+				grounded = true;
+			} else {
+				grounded = false;
+			}
+			if (!grounded) {
+				gravAcceleration += 0.0005f;
+				_position = _position + glm::vec3(0.0f, -1.0f, 0.0f) * gravAcceleration;
+			}
+		}
+
+		glm::mat4 vp = _projection * _view;
+		glm::mat4 vp2 = _projection * _view2;
+
+		// MapTools
+		mainQuad->test(MapTools::calculateFrustrumPlanes(vp2), vp2);
 		// Render step 1 - Render everything to shadowmapFBO
 		_shadowmapFBO->bind();
 		glViewport(0, 0, _shadowmapSize, _shadowmapSize);
@@ -586,7 +611,11 @@ void Engine::_initMeshes() {
 	_entities.push_back(std::make_shared<Earth>());
 	_entities.push_back(std::make_shared<Jeep>());
 	_entities.push_back(std::make_shared<Plane>());
-	//_entities.push_back(std::make_shared<Triangle>());
+	_entities.push_back(std::make_shared<Triangle>());
+	mainQuad = new MapQuad(nullptr, MapTools::mapBMPreader("assets/textures/map5.bmp"),
+												 MapTools::calculateNormals(MapTools::mapBMPreader("assets/textures/map5.bmp"), 129, 129), 129, 129, 0, 0);
+	MapTools::quadtreeSplit(mainQuad, 5, 129, 129);
+	_entities.push_back(std::shared_ptr<MapQuad>(mainQuad));
 	{
 		std::vector<Vertex> vertices = {
 			Vertex{glm::vec3{-1, 1, 0}, glm::vec3{0, 0, -1}, {1.0, 1.0, 1.0}, {0, 1}},	//
@@ -776,7 +805,13 @@ void Engine::_updateMovement(float delta, bool updateCamera) { // TODO: don't ca
 	if (state[SDL_SCANCODE_LCTRL])
 		_position -= glm::vec3(0, 1, 0) * delta * _speed;
 
-	_view = glm::lookAt(_position, _position + forward, up);
+	if (state[SDL_SCANCODE_X]) {
+		_view = glm::lookAt(glm::vec3(0.f, 10.f, 0.f), mainQuad->getCenter(), up);
+	} else {
+		_view = glm::lookAt(_position, _position + forward, up);
+	}
+	_view2 = glm::lookAt(_position, _position + forward, up);
+
 	_baseProgram->bind().setUniform("cameraPos", _position);
 	_deferredProgram->bind().setUniform("cameraPos", _position);
 	_particleProgram->bind().setUniform("cameraPos", _position);
