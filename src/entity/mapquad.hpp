@@ -55,7 +55,6 @@ public:
 	glm::vec3 pointOnMesh(glm::vec3 position);
 
 	bool isOutsideQuad(glm::vec3 position);
-	bool getRenderState();
 
 	virtual ~MapQuad();
 
@@ -77,5 +76,4 @@ private:
 
 	glm::mat4 model_matrix;
 	bool renderState;
-	bool hasChildren = false;
 };
