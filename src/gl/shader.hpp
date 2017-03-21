@@ -66,7 +66,8 @@ public:
 
 class ShaderUnit {
 public:
-	ShaderUnit(const std::string& file, ShaderType type);
+	//XXX: amdHack, Last minute hack to make shader work on AMD hardware
+	ShaderUnit(const std::string& file, ShaderType type, bool amdHack = false);
 	virtual ~ShaderUnit();
 
 	inline GLuint getUnit() const { return _unit; }

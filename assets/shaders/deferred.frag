@@ -1,5 +1,8 @@
 #version 430 core
 
+// Needed for AMD
+// #define AMD_HACK
+
 out vec4 outColor;
 
 in vec3 vColor;
@@ -69,6 +72,7 @@ void main() {
 		float shadow = setting_enableShadow ? 0 : 1;
 
 		if (setting_enableShadow && shadowCoord.w > 1) {
+#ifndef AMD_HACK
 			int halfAmount = setting_pcfSamples/2;
 			for (int x = 0; x < setting_pcfSamples; x++) {
 				for(int y = 0; y < setting_pcfSamples; y++){
@@ -76,6 +80,38 @@ void main() {
 				}
 			}
 			shadow /= setting_pcfSamples * setting_pcfSamples;
+#else
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(-2, -2));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(-1, -2));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 0, -2));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 1, -2));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 2, -2));
+
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(-2, -1));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(-1, -1));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 0, -1));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 1, -1));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 2, -1));
+
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(-2,  0));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(-1,  0));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 0,  0));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 1,  0));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 2,  0));
+
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(-2,  1));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(-1,  1));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 0,  1));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 1,  1));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 2,  1));
+
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(-2,  2));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2(-1,  2));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 0,  2));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 1,  2));
+			shadow += textureProjOffset(shadowMap, shadowCoord, ivec2( 2,  2));
+			shadow /= 25;
+#endif
 		}
 
 		vec3 result = vec3(0);
